@@ -1,10 +1,7 @@
 import requests
 from datetime import datetime
-import os
-import re
 import json
 from typing import Dict, List, Tuple, Any
-from dotenv import load_dotenv
 import urllib.parse
 
 URL = str

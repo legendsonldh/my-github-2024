@@ -1,13 +1,9 @@
 from src.filter import Filter
 
 import requests
-from datetime import datetime
 import os
-import re
 import json
-from typing import Dict, List, Tuple, Any
 from dotenv import load_dotenv
-import urllib.parse
 
 if __name__ == "__main__":
     load_dotenv()
