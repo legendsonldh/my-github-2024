@@ -10,10 +10,9 @@ import urllib.parse
 URL = str
 JSON = Dict[str, Any] | List[Dict[str, Any]]
 
-load_dotenv()
-
-ACCESS_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN")
-print(f"ACCESS_TOKEN: {ACCESS_TOKEN}")
+def load_token(token: str):
+    global ACCESS_TOKEN
+    ACCESS_TOKEN = token
 
 def paginate(func: callable) -> callable:
     def wrapper(username: str, url: URL) -> JSON:
