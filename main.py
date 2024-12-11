@@ -1,4 +1,4 @@
-from src.filter import Filter
+from github import Github
 
 import requests
 import os
@@ -14,8 +14,8 @@ if __name__ == "__main__":
     YEAR = 2024
 
     try:
-        filter = Filter(access_token=ACCESS_TOKEN, username=username)
-        result = filter \
+        github = Github(access_token=ACCESS_TOKEN, username=username)
+        result = github \
             .fetch_data() \
             .filter_year(YEAR) \
             .sort_all() \
