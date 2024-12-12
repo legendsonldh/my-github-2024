@@ -1,8 +1,8 @@
 import requests
 from datetime import datetime
-import json
 from typing import Dict, List, Tuple, Any
 import urllib.parse
+import pytz
 
 URL = str
 JSON = Dict[str, Any] | List[Dict[str, Any]]
@@ -11,7 +11,19 @@ def load_token(token: str):
     global ACCESS_TOKEN
     ACCESS_TOKEN = token
 
-def paginate(func: callable) -> callable:
+def load_timezone(timezone: str):
+    global TIMEZONE
+    TIMEZONE = timezone
+
+def _parse_time(time: str) -> str:
+    return (
+        datetime.strptime(time, "%Y-%m-%dT%H:%M:%SZ")
+        .replace(tzinfo=pytz.UTC)
+        .astimezone(TIMEZONE)
+        .isoformat()
+    )
+
+def _paginate(func: callable) -> callable:
     def wrapper(username: str, url: URL) -> JSON:
         results = []
         while url:
@@ -32,7 +44,7 @@ def paginate(func: callable) -> callable:
 
     return wrapper
 
-def get_response(url: URL, per_page: int = 100, accept: str = "application/vnd.github.v3+json") -> requests.Response:
+def _get_response(url: URL, per_page: int = 100, accept: str = "application/vnd.github.v3+json") -> requests.Response:
     headers = {
         "Authorization": f"Bearer {ACCESS_TOKEN}",
         "Accept": accept,
@@ -47,13 +59,16 @@ def get_response(url: URL, per_page: int = 100, accept: str = "application/vnd.g
     print(f"Fetching data from {url}...")
     
     response = requests.get(url, headers=headers)
+    if response.status_code == 409: # Empty repository
+        return response
+
     response.raise_for_status()
 
     return response
 
 def get_github_info(username: str) -> JSON:
     user_url = f"https://api.github.com/users/{username}"
-    response = get_response(user_url)
+    response = _get_response(user_url)
     data = response.json()
 
     created_time = (
@@ -61,28 +76,28 @@ def get_github_info(username: str) -> JSON:
     ).days
 
     isssues_url = f"https://api.github.com/search/issues?q=author:{username}+type:issue"
-    issues_details = get_user_issues(username=username, url=isssues_url)
+    issues_details = _get_user_issues(username=username, url=isssues_url)
 
     prs_url = f"https://api.github.com/search/issues?q=author:{username}+type:pr"
-    prs_details = get_user_prs(username=username, url=prs_url)
+    prs_details = _get_user_prs(username=username, url=prs_url)
 
-    repos_url = data.get("repos_url")
-    repos_details = get_user_repos(username=username, url=repos_url)
+    repos_url = f"https://api.github.com/user/repos"
+    repos_details = _get_user_repos(username=username, url=repos_url)
 
     stars_url = data.get("starred_url").replace("{/owner}{/repo}", "")
-    stars_details = get_user_stars(username=username, url=stars_url)
+    stars_details = _get_user_stars(username=username, url=stars_url)
 
     return {
-        "html_url": data.get("html_url"),
-        "name": data.get("name"),
-        "username": data.get("login"),
-        "avatar_url": data.get("avatar_url"),
-        "bio": data.get("bio"),
-        "public_repos_num": data.get("public_repos"),
-        # "public_gists_num": data.get("public_gists"),
-        "followers_num": data.get("followers"),
-        "following_num": data.get("following"),
-        "created_time": created_time,
+        "account_info": {
+            "url": data.get("html_url"),
+            "name": data.get("name"),
+            "username": data.get("login"),
+            "avatar_url": data.get("avatar_url"),
+            "bio": data.get("bio"),
+            "followers_num": data.get("followers"),
+            "following_num": data.get("following"),
+            "created_time": created_time,
+        },
         "issues_details": issues_details,
         "prs_details": prs_details,
         "repos_details": repos_details,
@@ -90,21 +105,21 @@ def get_github_info(username: str) -> JSON:
     }
 
 
-@paginate
-def get_user_issues(username: str, issues_url: URL) -> Tuple[JSON, requests.Response]:
-    response = get_response(issues_url)
+@_paginate
+def _get_user_issues(username: str, issues_url: URL) -> Tuple[JSON, requests.Response]:
+    response = _get_response(issues_url)
+    if response.status_code == 409:
+        return [], response
     issues = response.json().get("items")
 
     issues_details = []
 
     for issue in issues:
-        created_time = datetime.strptime(
-            issue.get("created_at"), "%Y-%m-%dT%H:%M:%SZ"
-        ).isoformat()
+        created_time = _parse_time(issue.get("created_at"))
 
         issues_details.append(
             {
-                "html_url": issue.get("html_url"),
+                "url": issue.get("html_url"),
                 "title": issue.get("title"),
                 "body": issue.get("body"),
                 "state": issue.get("state"),
@@ -115,30 +130,28 @@ def get_user_issues(username: str, issues_url: URL) -> Tuple[JSON, requests.Resp
     return issues_details, response
 
 
-@paginate
-def get_user_prs(username: str, prs_url: URL) -> Tuple[JSON, requests.Response]:
-    response = get_response(prs_url)
+@_paginate
+def _get_user_prs(username: str, prs_url: URL) -> Tuple[JSON, requests.Response]:
+    response = _get_response(prs_url)
+    if response.status_code == 409:
+        return [], response
     prs = response.json().get("items")
 
     prs_details = []
 
     for pr in prs:
-        created_time = datetime.strptime(
-            pr.get("created_at"), "%Y-%m-%dT%H:%M:%SZ"
-        ).isoformat()
-        
+        created_time = _parse_time(pr.get("created_at"))
+
         if pr.get("pull_request").get("merged_at"):
             merged = True
-            merged_time = datetime.strptime(
-                pr.get("pull_request").get("merged_at"), "%Y-%m-%dT%H:%M:%SZ"
-            ).isoformat()
+            merged_time = _parse_time(pr.get("pull_request").get("merged_at"))
         else:
             merged = False
             merged_time = None
 
         prs_details.append(
             {
-                "html_url": pr.get("html_url"),
+                "url": pr.get("html_url"),
                 "title": pr.get("title"),
                 "body": pr.get("body"),
                 "state": pr.get("state"),
@@ -151,32 +164,34 @@ def get_user_prs(username: str, prs_url: URL) -> Tuple[JSON, requests.Response]:
     return prs_details, response
 
 
-@paginate
-def get_user_stars(username: str, stars_url: URL) -> Tuple[JSON, requests.Response]:
-    response = get_response(stars_url, accept="application/vnd.github.v3.star+json")
+@_paginate
+def _get_user_stars(username: str, stars_url: URL) -> Tuple[JSON, requests.Response]:
+    response = _get_response(stars_url, accept="application/vnd.github.v3.star+json")
+    if response.status_code == 409:
+        return [], response
     stars = response.json()
 
     stars_details = []
 
     for star in stars:
-        starred_time = datetime.strptime(
-            star.get("starred_at"), "%Y-%m-%dT%H:%M:%SZ"
-        ).isoformat()
+        starred_time = _parse_time(star.get("starred_at"))
 
         stars_details.append(
             {
-                "html_url": star.get("repo").get("html_url"),
+                "url": star.get("repo").get("html_url"),
                 "name": star.get("repo").get("full_name"),
-                "starred_time": starred_time,
+                "created_time": starred_time,
             }
         )
 
     return stars_details, response
 
 
-@paginate
-def get_user_repos(username: str, repos_url: URL) -> Tuple[JSON, requests.Response]:
-    response = get_response(repos_url)
+@_paginate
+def _get_user_repos(username: str, repos_url: URL) -> Tuple[JSON, requests.Response]:
+    response = _get_response(repos_url)
+    if response.status_code == 409:
+        return [], response
     repos = response.json()
 
     repos_details = []
@@ -186,20 +201,20 @@ def get_user_repos(username: str, repos_url: URL) -> Tuple[JSON, requests.Respon
             continue
 
         language_url = repo.get("languages_url")
-        languages_details = get_user_repo_languages(language_url)
+        languages_details = _get_user_repo_languages(language_url)
 
         commits_url = repo.get("commits_url").replace("{/sha}", "")
-        commits_details = get_user_commits(username=username, url=commits_url)
+        commits_details = _get_user_commits(username=username, url=commits_url)
 
         repos_details.append(
             {
-                "html_url": repo.get("html_url"),
+                "url": repo.get("html_url"),
                 "name": repo.get("name"),
                 "description": repo.get("description"),
-                "created_at": repo.get("created_at"),
-                "stargazers_count": repo.get("stargazers_count"),
-                "forks_count": repo.get("forks_count"),
-                "languages_details": languages_details,
+                "created_time": repo.get("created_at"),
+                "stargazers_num": repo.get("stargazers_count"),
+                "forks_num": repo.get("forks_count"),
+                "languages_num": languages_details,
                 "commits_details": commits_details,
             }
         )
@@ -207,16 +222,18 @@ def get_user_repos(username: str, repos_url: URL) -> Tuple[JSON, requests.Respon
     return repos_details, response
 
 
-def get_user_repo_languages(language_url: URL) -> JSON:
-    response = get_response(language_url)
+def _get_user_repo_languages(language_url: URL) -> JSON:
+    response = _get_response(language_url)
     response.raise_for_status()
     languages_details = response.json()
 
     return languages_details
 
-@paginate
-def get_user_commits(username: str, commits_url: URL) -> Tuple[JSON, requests.Response]:
-    response = get_response(commits_url)
+@_paginate
+def _get_user_commits(username: str, commits_url: URL) -> Tuple[JSON, requests.Response]:
+    response = _get_response(commits_url)
+    if response.status_code == 409:
+        return [], response
     response.raise_for_status()
     commits = response.json()
 
@@ -232,32 +249,13 @@ def get_user_commits(username: str, commits_url: URL) -> Tuple[JSON, requests.Re
         if committer == username:
             commit_message = commit.get("commit").get("message")
 
-            commit_time = datetime.strptime(
-                commit.get("commit").get("committer").get("date"),
-                "%Y-%m-%dT%H:%M:%SZ",
-            ).isoformat()
+            commit_time = _parse_time(commit.get("commit").get("committer").get("date"))
 
             commits_details.append(
                 {
                     "message": commit_message,
-                    "time": commit_time,
+                    "created_time": commit_time,
                 }
             )
 
     return commits_details, response
-
-if __name__ == "__main__":
-    username = "WCY-dt"
-
-    try:
-        username = "WCY-dt"
-        result = get_github_info(username)
-        # print(json.dumps(result, indent=4))
-        with open("info.json", "w", encoding="utf-8") as f:
-            f.write(json.dumps(result, indent=4))
-    except requests.exceptions.HTTPError as e:
-        print(f"HTTP error occurred: {e}")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-    else:
-        print("Fetched successfully!")
