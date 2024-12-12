@@ -87,12 +87,18 @@ def get_github_info(username: str) -> JSON:
     stars_url = data.get("starred_url").replace("{/owner}{/repo}", "")
     stars_details = _get_user_stars(username=username, url=stars_url)
 
+    # download avatar
+    avatar_url = data.get("avatar_url")
+    avatar_response = requests.get(avatar_url)
+    with open("avatar.png", "wb") as f:
+        f.write(avatar_response.content)
+
     return {
         "account_info": {
             "url": data.get("html_url"),
             "name": data.get("name"),
             "username": data.get("login"),
-            "avatar_url": data.get("avatar_url"),
+            "avatar": "avatar.png",
             "bio": data.get("bio"),
             "followers_num": data.get("followers"),
             "following_num": data.get("following"),

@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 def _get_commit_type(message: str) -> str:
     commit_type = re.split(r"[:(!/\s]", message)[0].lower()
@@ -141,7 +141,6 @@ def commits_daily_number(data):
     for repo in data["repos_details"]:
         repo_commits_daily = {}
         for commit in repo["commits_details"]:
-            # 只保留年份、月份、日期，并转换为 YYYY-MM-DD 格式
             commit_date = datetime \
                 .fromisoformat(commit["created_time"]) \
                 .date() \
@@ -156,9 +155,37 @@ def commits_daily_number(data):
             else:
                 commits_daily[commit_date] = 1
 
-        repo["commits_daily_num"] = repo_commits_daily
+        repo_commmits_daily_list = {}
 
-    data["commits_daily_num"] = commits_daily
+        for i in range(2000, datetime.now().year + 2):
+            days_in_year = 366 if i % 4 == 0 and i % 100 != 0 or i % 400 == 0 else 365
+            tmp = []
+            for j in range(0, days_in_year):
+                date = (datetime(i, 1, 1) + timedelta(days=j)).date().isoformat()
+                if date in repo_commits_daily:
+                    tmp.append(repo_commits_daily[date])
+                else:
+                    tmp.append(0)
+            if sum(tmp) != 0:
+                repo_commmits_daily_list[i] = tmp
+
+        repo["commits_daily_num"] = repo_commmits_daily_list
+
+    commits_daily_list = {}
+
+    for i in range(2000, datetime.now().year + 2):
+        days_in_year = 366 if i % 4 == 0 and i % 100 != 0 or i % 400 == 0 else 365
+        tmp = []
+        for j in range(0, days_in_year):
+            date = (datetime(i, 1, 1) + timedelta(days=j)).date().isoformat()
+            if date in commits_daily:
+                tmp.append(commits_daily[date])
+            else:
+                tmp.append(0)
+        if sum(tmp) != 0:
+            commits_daily_list[i] = tmp
+
+    data["commits_daily_num"] = commits_daily_list
 
     return data
 
