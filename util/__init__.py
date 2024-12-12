@@ -3,10 +3,10 @@ from pprint import pprint
 import pytz
 from datetime import timedelta, timezone as dt_timezone
 
-from src.gh_fetch import load_token, load_timezone, get_github_info
-import src.gh_filter as gh_filter
-import src.gh_count as gh_count
-import src.gh_sort as gh_sort
+from util.gh_fetch import load_token, load_timezone, get_github_info
+import util.gh_filter as gh_filter
+import util.gh_count as gh_count
+import util.gh_sort as gh_sort
 
 
 class Github:

@@ -90,7 +90,7 @@ def get_github_info(username: str) -> JSON:
     # download avatar
     avatar_url = data.get("avatar_url")
     avatar_response = requests.get(avatar_url)
-    with open("avatar.png", "wb") as f:
+    with open("assets/avatar.png", "wb") as f:
         f.write(avatar_response.content)
 
     return {
