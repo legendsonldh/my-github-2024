@@ -3,7 +3,6 @@ COMMITS_PER_HOUR.push(COMMITS_PER_HOUR[0]);
 const COMMITS_PER_WEEKDAY = eval(document.querySelector('#data-commits-per-weekday').innerHTML);
 COMMITS_PER_WEEKDAY.push(COMMITS_PER_WEEKDAY[0]);
 const COMMITS_PER_MONTH = eval(document.querySelector('#data-commits-per-month').innerHTML);
-COMMITS_PER_MONTH.push(COMMITS_PER_MONTH[0]);
 
 function get_chart_config(label, labels, data) {
     return {
@@ -54,4 +53,4 @@ const ctx2 = document.getElementById('commits-per-weekday');
 new Chart(ctx2, get_chart_config('Commits Per Weekday', ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon'], COMMITS_PER_WEEKDAY));
 
 const ctx3 = document.getElementById('commits-per-month');
-new Chart(ctx3, get_chart_config('Commits Per Month', ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'], COMMITS_PER_MONTH));
+new Chart(ctx3, get_chart_config('Commits Per Month', ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], COMMITS_PER_MONTH));

@@ -2,6 +2,9 @@ import json
 import shutil
 
 def generate_site(year: int):
+    data_all = None
+    with open("data/result_all.json", "r") as f:
+        data_all = json.load(f)
     data = None
     with open("data/result.json", "r") as f:
         data = json.load(f)
@@ -9,61 +12,96 @@ def generate_site(year: int):
     with open("data/result_new_repo.json", "r") as f:
         data_new_repo = json.load(f)
 
-    USERNAME = data["account_info"]["username"]
-    NAME = data["account_info"]["name"]
-    AVATAR = data["account_info"]["avatar"]
-    BIO = data["account_info"]["bio"]
-    CREATED_TIME = data["account_info"]["created_time"]
+    
+    commits_per_day = data["commits_daily_num"][str(year)]
+    longest_streak = 0
+    current_streak = 0
+    longest_break = 0
+    current_break = 0
 
-    FOLLOWERS_NUM = data["account_info"]["followers_num"]
-    FOLLOWING_NUM = data["account_info"]["following_num"]
+    for commits in commits_per_day:
+        if commits > 0:
+            current_streak += 1
+            if current_streak > longest_streak:
+                longest_streak = current_streak
+        else:
+            current_streak = 0
 
-    COMMITS_NUM = data["commits_num"]
-    COMMITS_TYPES_NUM = data["commits_types_num"]
-    COMMITS_PER_MONTH = data["commits_monthly_num"]
-    COMMITS_NUM_OF_MOST_COMMITTED_MONTH = max(COMMITS_PER_MONTH)
-    MOST_COMMITTED_MONTH = COMMITS_PER_MONTH.index(COMMITS_NUM_OF_MOST_COMMITTED_MONTH) + 1
-    COMMITS_NUM_OF_LEAST_COMMITTED_MONTH = min(COMMITS_PER_MONTH)
-    LEAST_COMMITTED_MONTH = COMMITS_PER_MONTH.index(COMMITS_NUM_OF_LEAST_COMMITTED_MONTH) + 1
-    COMMITS_PER_WEEKDAY = data["commits_weekdaily_num"]
-    MOST_COMMITTED_WEEKDAY = COMMITS_PER_WEEKDAY.index(max(COMMITS_PER_WEEKDAY))
-    COMMITS_NUM_OF_MOST_COMMITTED_WEEKDAY = max(COMMITS_PER_WEEKDAY)
-    LEAST_COMMITTED_WEEKDAY = COMMITS_PER_WEEKDAY.index(min(COMMITS_PER_WEEKDAY))
-    COMMITS_NUM_OF_LEAST_COMMITTED_WEEKDAY = min(COMMITS_PER_WEEKDAY)
-    COMMITS_PER_DAY = data["commits_daily_num"][str(year)]
-    COMMITS_PER_HOUR = data["commits_hourly_num"]
-    MOST_COMMITTED_HOUR = COMMITS_PER_HOUR.index(max(COMMITS_PER_HOUR))
-    COMMITS_NUM_OF_MOST_COMMITTED_HOUR = max(COMMITS_PER_HOUR)
-    LEAST_COMMITTED_HOUR = COMMITS_PER_HOUR.index(min(COMMITS_PER_HOUR))
-    COMMITS_NUM_OF_LEAST_COMMITTED_HOUR = min(COMMITS_PER_HOUR)
-    MOST_COMMITTED_REPO = sorted(data["repos_details"], key=lambda x: x["commits_num"], reverse=True)[0]["name"]
-    COMMITS_NUM_OF_MOST_COMMITTED_REPO = sorted(data["repos_details"], key=lambda x: x["commits_num"], reverse=True)[0]["commits_num"]
+        if commits == 0:
+            current_break += 1
+            if current_break > longest_break:
+                longest_break = current_break
+        else:
+            current_break = 0
 
-    REPOS_NUM = data["repos_num"]
-    NEW_REPOS_NUM = data_new_repo["repos_num"]
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    hours = [f"{i}:00" for i in range(24)]
 
-    NUMBER_OF_LANGUAGES_USED_IN_NEW_REPOS = len(data_new_repo["repos_languages_num"])
-    MOST_USED_LANGUAGE_IN_NEW_REPOS = list(data_new_repo["repos_languages_num"].keys())[0]
-    TOP_3_LANGUAGES_USED_IN_NEW_REPOS = list(data_new_repo["repos_languages_num"].keys())[:min(3, len(data_new_repo["repos_languages_num"]))]
+    
+    created_days = data_all["account_info"]["created_time"]
+    created_days = (int(created_days) + 99) // 100 * 100
 
     context = {
         "YEAR": year,
-        "USERNAME": USERNAME,
-        "NAME": NAME,
-        "BIO": BIO,
-        "COMMITS_PER_DAY": COMMITS_PER_DAY,
-        "COMMITS_PER_MONTH": COMMITS_PER_MONTH,
-        "COMMITS_PER_WEEKDAY": COMMITS_PER_WEEKDAY,
-        "COMMITS_PER_HOUR": COMMITS_PER_HOUR,
-        "COMMITS_NUM": COMMITS_NUM,
+
+        "USERNAME": data_all["account_info"]["username"],
+        "NAME": data_all["account_info"]["name"],
+        "REPOS_TOT_NUM": data_all["repos_num"],
+        "CREATED_TIME": created_days,
+        "FOLLOWERS_NUM": data_all["account_info"]["followers_num"],
+        "FOLLOWING_NUM": data_all["account_info"]["following_num"],
+        "STARS_NUM": data_all["stargazers_num"],
+
+        "COMMITS_PER_DAY": data["commits_daily_num"][str(year)],
+        "COMMITS_DAYS_NUM": len([x for x in data["commits_daily_num"][str(year)] if x > 0]),
+        "LONGEST_COMMIT_STREAK": longest_streak,
+        "LONGEST_COMMIT_BREAK": longest_break,
+        "MAX_COMMITS_PER_DAY": max(data["commits_daily_num"][str(year)]),
+
+        "COMMITS_PER_MONTH": data["commits_monthly_num"],
+        "MOST_ACTIVE_MONTH": months[data["commits_monthly_num"].index(max(data["commits_monthly_num"]))],
+        "COMMITS_PER_WEEKDAY": data["commits_weekdaily_num"],
+        "MOST_ACTIVE_WEEKDAY": weekdays[data["commits_weekdaily_num"].index(max(data["commits_weekdaily_num"]))],
+        "COMMITS_PER_HOUR": data["commits_hourly_num"],
+        "MOST_ACTIVE_HOUR": hours[data["commits_hourly_num"].index(max(data["commits_hourly_num"]))],
+
+        "COMMITS_NUM": data["commits_num"],
         "ISSUES_NUM": data["issues_num"],
         "PRS_NUM": data["prs_num"],
-        "PRS_MERGED_NUM": data["prs_merged_num"],
-        "STARS_NUM": data["stars_num"],
+
+        "REPOS_NUM": data["repos_num"],
+        "TOP_3_MOST_COMMITTED_REPOS": sorted(
+            [
+                {"name": repo["name"], "num": repo["commits_num"]}
+                for repo in data["repos_details"]
+            ],
+            key=lambda x: x["num"],
+            reverse=True,
+        )[: min(3, len(data["repos_details"]))],
+        "LANGUAGES_NUM": len(data_new_repo["languages_num"]),
+        "TOP_3_LANGUAGES_USED_IN_NEW_REPOS": list(
+            [
+                {"name": k, "num": v}
+                for k, v in data_new_repo["languages_num"].items()
+            ],
+        )[: min(3, len(data_new_repo["languages_num"]))],
+        "CONVENTIONAL_COMMITS_NUM": sum(
+            [v for k, v in data["commits_types_num"].items() if k != "others"]
+        ),
+        "TOP_3_CONVENTIONAL_COMMIT_TYPES": sorted(
+            [
+                {"name": k, "num": v}
+                for k, v in data["commits_types_num"].items()
+                if k != "others"
+            ],
+            key=lambda x: x["num"],
+            reverse=True,
+        )[: min(3, len(data["commits_types_num"]) - 1)],
     }
 
     html_output = _render_template("assets/template.html", **context)
-    
+
     shutil.copy("assets/avatar.png", "dist/assets/img/avatar.png")
 
     with open("dist/index.html", "w", encoding="utf-8") as file:

@@ -5,8 +5,7 @@
     <meta charset="UTF-8">
     <title>My GitHub {YEAR}</title>
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link href="https://cdn.materialdesignicons.com/7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/@primer/octicons@latest/build/build.css">
+    <!-- <link rel="stylesheet" href="https://unpkg.com/@primer/octicons@latest/build/build.css"> -->
     <link rel="stylesheet" href="assets/style/main.css">
 </head>
 
@@ -16,31 +15,52 @@
             <h1>My GitHub {YEAR}</h1>
         </header>
         <section id="basic-info">
-            <img src="assets/img/avatar.png" alt="avatar">
-            <div class="name">
-                <h2>{NAME}</h2>
-                <p>{USERNAME}</p>
+            <div class="social">
+                <img src="assets/img/avatar.png" alt="avatar">
+                <div class="name">
+                    <h2>{NAME}</h2>
+                    <p>{USERNAME}</p>
+                </div>
+            </div>
+            <div class="info">
+                <p><span>~{CREATED_TIME}</span><br>days on GitHub</p>
+                <p><span>{FOLLOWERS_NUM}</span><br>followers</p>
+                <p><span>{FOLLOWING_NUM}</span><br>following</p>
+                <p><span>{STARS_NUM}</span><br>stargazers</p>
             </div>
         </section>
         <section id="commit-map">
-            <h3>Commit Map</h3>
             <table></table>
+            <div>
+                <p>
+                    Commited days<br><span>{COMMITS_DAYS_NUM}</span>
+                </p>
+                <p>
+                    Longest streak<br><span>{LONGEST_COMMIT_STREAK}</span>
+                </p>
+                <p>
+                    Longest break<br><span>{LONGEST_COMMIT_BREAK}</span>
+                </p>
+                <p>
+                    Maximum commits<br><span>{MAX_COMMITS_PER_DAY}</span>
+                </p>
+            </div>
         </section>
         <section id="trending">
-            <h3>Commits per Hour</h3>
-            <h3>Commits per Weekday</h3>
-            <h3>Commits per Month</h3>
+            <h3>Commits in Hour</h3>
+            <h3>Commits in Weekday</h3>
+            <h3>Commits in Month</h3>
             <canvas id="commits-per-hour" width="250" height="160"></canvas>
             <canvas id="commits-per-weekday" width="250" height="160"></canvas>
             <canvas id="commits-per-month" width="250" height="160"></canvas>
             <div>
-                <p>Mornings?<br>Not for this night owl!</p>
+                <p>Most energetic at <span>{MOST_ACTIVE_HOUR}</span></p>
             </div>
             <div>
-                <p>Can't stop coding<br>—— even on weekends!</p>
+                <p>Coding peaks on <span>{MOST_ACTIVE_WEEKDAY}</span></p>
             </div>
             <div>
-                <p>Summer and winter breaks are my personal time-outs!</p>
+                <p>Inspiration bursts in <span>{MOST_ACTIVE_MONTH}</span></p>
             </div>
         </section>
         <section id="commit-activity">
@@ -73,18 +93,47 @@
             </div>
         </section>
         <section id="preferences">
+            <div class="brief">
+                <num>{REPOS_NUM}</num>
+                <span>repositories<br>commited</span>
+            </div>
+            <div class="detail" id="top-3-most-committed-repos"></div>
+            <div class="brief">
+                <num>{LANGUAGES_NUM}</num>
+                <span>languages used<br>in new repositories</span>
+            </div>
+            <div class="detail" id="top-3-languages-used-in-new-repos"></div>
+            <div class="brief">
+                <num>{CONVENTIONAL_COMMITS_NUM}</num>
+                <span>conventional<br>commits made</span>
+            </div>
+            <div class="detail" id="top-3-conventional-commit-types"></div>
         </section>
+        <a href="https://github.com/WCY-dt/my-github-2024" target="_blank" rel="noopener noreferrer" id="footer">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+                <path
+                    d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z">
+                </path>
+            </svg>
+            <span>WCY-dt/my-github-2024</span>
+        </a>
     </main>
+    <foot>
     <div hidden>
         <div id="data-year">{YEAR}</div>
         <div id="data-commits-per-day">{COMMITS_PER_DAY}</div>
         <div id="data-commits-per-month">{COMMITS_PER_MONTH}</div>
         <div id="data-commits-per-weekday">{COMMITS_PER_WEEKDAY}</div>
         <div id="data-commits-per-hour">{COMMITS_PER_HOUR}</div>
+        <div id="data-top-3-most-committed-repos">{TOP_3_MOST_COMMITTED_REPOS}</div>
+        <div id="data-top-3-languages-used-in-new-repos">{TOP_3_LANGUAGES_USED_IN_NEW_REPOS}</div>
+        <div id="data-top-3-conventional-commit-types">{TOP_3_CONVENTIONAL_COMMIT_TYPES}</div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="assets/js/commits_per_day.js"></script>
     <script src="assets/js/commits_trending.js"></script>
+    <script src="assets/js/preferences.js"></script>
+    </foot>
 </body>
 
 </html>
