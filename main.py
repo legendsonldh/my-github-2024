@@ -25,6 +25,6 @@ if __name__ == "__main__":
 
     github = Github(access_token=ACCESS_TOKEN, username=USERNAME, timezone=TIMEZONE)
 
-    fetch_github(github, YEAR, skip_fetch=True)
+    fetch_github(github, YEAR, skip_fetch=False)
 
     generate_site(YEAR)

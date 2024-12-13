@@ -2,9 +2,6 @@ import json
 import shutil
 
 def generate_site(year: int):
-    data_all = None
-    with open("data/result_all.json", "r") as f:
-        data_all = json.load(f)
     data = None
     with open("data/result.json", "r") as f:
         data = json.load(f)
@@ -39,19 +36,18 @@ def generate_site(year: int):
     hours = [f"{i}:00" for i in range(24)]
 
     
-    created_days = data_all["account_info"]["created_time"]
+    created_days = data["account_info"]["created_time"]
     created_days = (int(created_days) + 99) // 100 * 100
 
     context = {
         "YEAR": year,
 
-        "USERNAME": data_all["account_info"]["username"],
-        "NAME": data_all["account_info"]["name"],
-        "REPOS_TOT_NUM": data_all["repos_num"],
+        "USERNAME": data["account_info"]["username"],
+        "NAME": data["account_info"]["name"],
         "CREATED_TIME": created_days,
-        "FOLLOWERS_NUM": data_all["account_info"]["followers_num"],
-        "FOLLOWING_NUM": data_all["account_info"]["following_num"],
-        "STARS_NUM": data_all["stargazers_num"],
+        "FOLLOWERS_NUM": data["account_info"]["followers_num"],
+        "FOLLOWING_NUM": data["account_info"]["following_num"],
+        "STARS_NUM": data["stargazers_num"],
 
         "COMMITS_PER_DAY": data["commits_daily_num"][str(year)],
         "COMMITS_DAYS_NUM": len([x for x in data["commits_daily_num"][str(year)] if x > 0]),

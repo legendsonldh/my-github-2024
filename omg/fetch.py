@@ -43,13 +43,6 @@ def fetch_github(github, year: int, skip_fetch: bool = False):
             github \
                 .fetch_data() \
                 .write_to_file("data/origin.json")
-            
-        github \
-            .read_from_file("data/origin.json") \
-            .sort_all() \
-            .count_all() \
-            .filter_json(key=KEY) \
-            .write_to_file("data/result_all.json")
 
         github \
             .read_from_file("data/origin.json") \
