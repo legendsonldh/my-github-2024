@@ -1,4 +1,4 @@
-# oh-my-github
+# my-github-2024
 
 ## Example
 
