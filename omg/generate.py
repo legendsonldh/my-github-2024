@@ -49,11 +49,11 @@ def generate_site(year: int):
         "FOLLOWING_NUM": data["account_info"]["following_num"],
         "STARS_NUM": data["stargazers_num"],
 
-        "COMMITS_PER_DAY": data["commits_daily_num"][str(year)],
-        "COMMITS_DAYS_NUM": len([x for x in data["commits_daily_num"][str(year)] if x > 0]),
+        "COMMITS_PER_DAY": commits_per_day,
+        "COMMITS_DAYS_NUM": len([x for x in commits_per_day if x > 0]),
         "LONGEST_COMMIT_STREAK": longest_streak,
         "LONGEST_COMMIT_BREAK": longest_break,
-        "MAX_COMMITS_PER_DAY": max(data["commits_daily_num"][str(year)]),
+        "MAX_COMMITS_PER_DAY": max(commits_per_day),
 
         "COMMITS_PER_MONTH": data["commits_monthly_num"],
         "MOST_ACTIVE_MONTH": months[data["commits_monthly_num"].index(max(data["commits_monthly_num"]))],

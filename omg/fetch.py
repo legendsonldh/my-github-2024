@@ -1,40 +1,30 @@
 KEY = {
+    "commits_daily_num": "dict",
     "account_info": {
         "url": "str",
         "name": "str",
         "username": "str",
-        "avatar": "str",
-        "bio": "str",
         "followers_num": "int",
         "following_num": "int",
         "created_time": "str",
     },
-    "repos_details": {
-        "url": "str",
-        "name": "str",
-        "description": "str",
-        "created_time": "str",
-        "commits_num": "int",
-        "languages_num": "dict",
-        "stargazers_num": "int",
-        "forks_num": "int",
-        "commits_monthly_num": "dict",
-    },
-    "repos_num": "int",
-    "commits_num": "int",
-    "commits_types_num": "dict",
+    "stargazers_num": "int",
     "commits_monthly_num": "dict",
     "commits_weekdaily_num": "dict",
-    "commits_daily_num": "dict",
     "commits_hourly_num": "dict",
+    "commits_num": "int",
     "issues_num": "int",
-    "forks_num": "int",
-    "stars_num": "int",
     "prs_num": "int",
-    "prs_merged_num": "int",
-    "stargazers_num": "int",
+    "repos_num": "int",
+    "repos_details": {
+        "name": "str",
+        "commits_num": "int",
+    },
+    "commits_types_num": "dict",
+}
+
+KEY_NEW_REPO = {
     "languages_num": "dict",
-    "repos_languages_num": "dict",
 }
 
 def fetch_github(github, year: int, skip_fetch: bool = False):
@@ -58,7 +48,7 @@ def fetch_github(github, year: int, skip_fetch: bool = False):
             .filter_repos(year=year) \
             .sort_all() \
             .count_all() \
-            .filter_json(key=KEY) \
+            .filter_json(key=KEY_NEW_REPO) \
             .write_to_file("data/result_new_repo.json")
 
     except Exception as e:
