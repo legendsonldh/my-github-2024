@@ -6,13 +6,13 @@ from util import Github
 from omg.generate import generate_site
 from omg.fetch import fetch_github
 
-def load_constants(username: str, year: int):
+def load_constants(year: int):
     global ACCESS_TOKEN
     load_dotenv()
     ACCESS_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN")
 
     global USERNAME
-    USERNAME = username
+    USERNAME = os.getenv("GITHUB_USERNAME")
 
     global YEAR
     YEAR = year
@@ -21,7 +21,7 @@ def load_constants(username: str, year: int):
     TIMEZONE = "Asia/Shanghai"
 
 if __name__ == "__main__":
-    load_constants("WCY-dt", 2024)
+    load_constants(2024)
 
     github = Github(access_token=ACCESS_TOKEN, username=USERNAME, timezone=TIMEZONE)
 
