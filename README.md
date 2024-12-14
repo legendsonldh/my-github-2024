@@ -6,6 +6,8 @@
 
 ## Usage
 
+0. Prepare your GitHub access token. You can generate a new token at [Personal Access Tokens (Classic)](https://github.com/settings/tokens ).
+
 1. Create a `.env` file in the root directory of the project. And fill in your GitHub access token.
 
     ```shell
