@@ -20,13 +20,15 @@
     ```shell
     pip install -r requirements.txt
     ```
+   
+3. Create a folder named `data` in the root directory of the project.
 
-3. Run the following command to start the program.
+4. Run the following command to start the program.
 
     ```shell
     python main.py
     ```
 
-4. Click the `Go Live` button in the bottom right corner of the VSCode window to preview.
+5. Click the `Go Live` button in the bottom right corner of the VSCode window to preview.
 
     In alternative, you can open the [`dist/index.html`](dist/index.html) file in the browser.
