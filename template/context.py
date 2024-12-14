@@ -49,18 +49,13 @@ def get_context(year: int) -> dict:
     ][COMMITS_PER_MONTH.index(max(COMMITS_PER_MONTH))]
     COMMITS_PER_WEEKDAY = data["commits_weekdaily_num"]
     MOST_ACTIVE_WEEKDAY = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun",
     ][COMMITS_PER_WEEKDAY.index(max(COMMITS_PER_WEEKDAY))]
     COMMITS_PER_HOUR = data["commits_hourly_num"]
     MOST_ACTIVE_HOUR = [f"{i}:00" for i in range(24)][
