@@ -14,15 +14,17 @@ def load_constants(year: int):
 
         global USERNAME
         USERNAME = os.getenv("GITHUB_USERNAME")
+
+        global TIMEZONE
+        TIMEZONE = os.getenv("GITHUB_TIMEZONE")
     except Exception as e:
-        print(f"You need to set the GITHUB_ACCESS_TOKEN and GITHUB_USERNAME environment variables: {e}")
+        print(
+            f"You need to set the GITHUB_ACCESS_TOKEN, GITHUB_USERNAME and GITHUB_TIMEZONE environment variables: {e}"
+        )
         exit(1)
 
     global YEAR
     YEAR = year
-
-    global TIMEZONE
-    TIMEZONE = "Asia/Shanghai"
 
 if __name__ == "__main__":
     load_constants(2024)
