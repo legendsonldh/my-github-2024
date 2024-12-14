@@ -1,5 +1,6 @@
 import json
 import shutil
+import os
 
 def generate_site(year: int):
     data = None
@@ -9,7 +10,6 @@ def generate_site(year: int):
     with open("data/result_new_repo.json", "r") as f:
         data_new_repo = json.load(f)
 
-    
     commits_per_day = data["commits_daily_num"][str(year)]
     longest_streak = 0
     current_streak = 0
@@ -35,7 +35,6 @@ def generate_site(year: int):
     weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
     hours = [f"{i}:00" for i in range(24)]
 
-    
     created_days = data["account_info"]["created_time"]
     created_days = (int(created_days) + 99) // 100 * 100
 
@@ -96,9 +95,11 @@ def generate_site(year: int):
         )[: min(3, len(data["commits_types_num"]) - 1)],
     }
 
-    html_output = _render_template("assets/template.html", **context)
+    html_output = _render_template("template/template.html", **context)
 
-    shutil.copy("assets/avatar.png", "dist/assets/img/avatar.png")
+    if not os.path.exists("dist/assets/img"):
+        os.makedirs("dist/assets/img")
+    shutil.copy("data/avatar.png", "dist/assets/img/avatar.png")
 
     with open("dist/index.html", "w", encoding="utf-8") as file:
         file.write(html_output)

@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Dict, List, Tuple, Any
 import urllib.parse
 import pytz
+import os
 
 URL = str
 JSON = Dict[str, Any] | List[Dict[str, Any]]
@@ -90,7 +91,10 @@ def get_github_info(username: str) -> JSON:
     # download avatar
     avatar_url = data.get("avatar_url")
     avatar_response = requests.get(avatar_url)
-    with open("assets/avatar.png", "wb") as f:
+    
+    if not os.path.exists("data"):
+        os.makedirs("data")
+    with open("data/avatar.png", "wb") as f:
         f.write(avatar_response.content)
 
     return {

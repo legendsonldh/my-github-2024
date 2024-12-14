@@ -1,3 +1,5 @@
+import os
+
 KEY = {
     "commits_daily_num": "dict",
     "account_info": {
@@ -27,8 +29,11 @@ KEY_NEW_REPO = {
     "languages_num": "dict",
 }
 
-def fetch_github(github, year: int, skip_fetch: bool = False):
+def fetch_github(github, year: int, skip_fetch: bool = False) -> None:
     try:
+        if not os.path.exists("data"):
+            os.makedirs("data")
+
         if not skip_fetch:
             github \
                 .fetch_data() \
