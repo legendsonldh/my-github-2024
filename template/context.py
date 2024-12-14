@@ -1,5 +1,6 @@
 import json
 from itertools import groupby
+import requests
 
 
 def get_context(year: int) -> dict:
@@ -11,6 +12,8 @@ def get_context(year: int) -> dict:
         data_new_repo = json.load(f)
 
     # Extract necessary data
+    AVATAR = requests.get(data["account_info"]["avatar"]).content
+
     YEAR = year
     USERNAME = data["account_info"]["username"]
     NAME = data["account_info"]["name"]
@@ -95,6 +98,7 @@ def get_context(year: int) -> dict:
     )[: min(3, len(data["commits_types_num"]) - 1)]
 
     return {
+        "AVATAR": AVATAR,
         "YEAR": YEAR,
         "USERNAME": USERNAME,
         "NAME": NAME,

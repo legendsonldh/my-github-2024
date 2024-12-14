@@ -3,6 +3,7 @@ import os
 KEY = {
     "commits_daily_num": "dict",
     "account_info": {
+        "avatar": "str",
         "url": "str",
         "name": "str",
         "username": "str",

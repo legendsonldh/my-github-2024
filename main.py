@@ -31,4 +31,14 @@ if __name__ == "__main__":
 
     fetch_github(github, YEAR, skip_fetch=False)
 
-    generate_site(YEAR)
+    avatar, html_output = generate_site(YEAR)
+
+    # Copy avatar image
+    if not os.path.exists("dist/assets/img"):
+        os.makedirs("dist/assets/img")
+    with open("dist/assets/img/avatar.png", "wb") as file:
+        file.write(avatar)
+
+    # Output to file
+    with open("dist/index.html", "w", encoding="utf-8") as file:
+        file.write(html_output)
