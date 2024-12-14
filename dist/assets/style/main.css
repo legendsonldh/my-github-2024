@@ -301,6 +301,7 @@ h1 {
     display: grid;
     grid-template-columns: max-content 1fr;
     gap: 20px;
+    place-content: center;
 }
 
 #preferences .brief {
@@ -335,10 +336,11 @@ h1 {
     grid-template-columns: 80px calc(100% - 80px);
     gap: 5px;
     width: 100%;
+    height: fit-content;
 }
 
 #preferences .detail span {
-    font-size: 18px;
+    font-size: 16px;
     color: var(--secondary-color);
     text-align: right;
     font-weight: bold;
