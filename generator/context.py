@@ -1,15 +1,11 @@
-import json
 from itertools import groupby
 import requests
 
+# from pprint import pprint
 
-def get_context(year: int) -> dict:
-    data = None
-    with open("data/result.json", "r") as f:
-        data = json.load(f)
-    data_new_repo = None
-    with open("data/result_new_repo.json", "r") as f:
-        data_new_repo = json.load(f)
+
+def get_context(year: int, data: dict, data_new_repo: dict) -> dict:
+    # pprint(data)
 
     # Extract necessary data
     AVATAR = requests.get(data["account_info"]["avatar"]).content
@@ -22,7 +18,7 @@ def get_context(year: int) -> dict:
     FOLLOWING_NUM = data["account_info"]["following_num"]
     STARS_NUM = data["stargazers_num"]
 
-    COMMITS_PER_DAY = data["commits_daily_num"][str(year)]
+    COMMITS_PER_DAY = data["commits_daily_num"][year]
     COMMITS_DAYS_NUM = len([x for x in COMMITS_PER_DAY if x > 0])
     LONGEST_COMMIT_STREAK = max(
         (len(list(g)) for k, g in groupby(COMMITS_PER_DAY) if k > 0), default=0

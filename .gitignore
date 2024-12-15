@@ -1,11 +1,5 @@
 __pycache__/
 
-.env.dev
-
 data/
 
-dist/index.html
-
-dist/assets/img/
-
-avatar.*
+.env

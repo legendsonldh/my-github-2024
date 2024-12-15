@@ -1,7 +1,4 @@
-import shutil
-import os
-
-from template.context import get_context
+from generator.context import get_context
 
 
 def _render_template(template_path, **kwargs):
@@ -12,9 +9,9 @@ def _render_template(template_path, **kwargs):
     return html_content
 
 
-def generate_site(year: int):
-    context = get_context(year)
+def generate_site(year: int, result: dict, result_new_repo: dict) -> tuple:
+    context = get_context(year, result, result_new_repo)
 
-    html_output = _render_template("template/template.html", **context)
+    html_output = _render_template("templates/template.html", **context)
 
     return context["AVATAR"], html_output

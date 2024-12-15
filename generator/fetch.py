@@ -1,5 +1,7 @@
 import os
 
+# from pprint import pprint
+
 KEY = {
     "commits_daily_num": "dict",
     "account_info": {
@@ -30,34 +32,39 @@ KEY_NEW_REPO = {
     "languages_num": "dict",
 }
 
-def fetch_github(github, year: int, skip_fetch: bool = False) -> None:
+def fetch_github(github, year: int, skip_fetch: bool = False) -> tuple:
     try:
-        if not os.path.exists("data"):
-            os.makedirs("data")
-
         if not skip_fetch:
-            github \
+            origin = github \
                 .fetch_data() \
-                .write_to_file("data/origin.json")
+                .result
 
-        github \
-            .read_from_file("data/origin.json") \
-            .filter_all(year=year) \
-            .sort_all() \
-            .count_all() \
-            .filter_json(key=KEY) \
-            .write_to_file("data/result.json")
+        github.result = origin
+        data = (
+            github
+            .filter_all(year=year)
+            .sort_all()
+            .count_all()
+            .filter_json(key=KEY)
+            .result
+        )
 
-        github \
-            .read_from_file("data/origin.json") \
-            .filter_all(year=year) \
-            .filter_repos(year=year) \
-            .sort_all() \
-            .count_all() \
-            .filter_json(key=KEY_NEW_REPO) \
-            .write_to_file("data/result_new_repo.json")
+        # pprint(data)
+
+        github.result = origin
+        data_new_repo = (
+            github
+            .filter_all(year=year)
+            .filter_repos(year=year)
+            .sort_all()
+            .count_all()
+            .filter_json(key=KEY_NEW_REPO)
+            .result
+        )
 
     except Exception as e:
         print(f"An error occurred: {e}")
     else:
         print("Fetched successfully!")
+
+    return data, data_new_repo

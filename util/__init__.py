@@ -16,6 +16,8 @@ class Github:
         self.TIMEZONE = self._parse_timezone(timezone)
         self.data = None
 
+        # print(f"Access token: {self.ACCESS_TOKEN}, Username: {self.USERNAME}, Timezone: {self.TIMEZONE}")
+
         load_token(self.ACCESS_TOKEN)
         load_timezone(self.TIMEZONE)
 

@@ -10,31 +10,23 @@ Generate your GitHub yearly statistics chart.
 
 ## Usage
 
-0. Prepare your GitHub access token. You can generate a new token at [Personal Access Tokens (Classic)](https://github.com/settings/tokens).
+0. Prepare a GitHub access token. You can generate a new token in [Personal Access Tokens (Classic)](https://github.com/settings/tokens). It should look like `ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`.
 
-1. Modify the `.env` file in the root directory. Fill in your GitHub access token, username, and time zone.
-
-    ```shell
-    GITHUB_ACCESS_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-    GITHUB_USERNAME=your-github-username
-    GITHUB_TIMEZONE=Asia/Shanghai
-    ```
-
-2. Run the following command to install dependencies.
+1. Run the following command to install dependencies.
 
     ```shell
     pip install -r requirements.txt
     ```
 
-3. Run the following command to start the program.
+2. Run the following command to start the program.
 
     ```shell
-    python main.py
+    flask --app my-github-2024 run
     ```
 
-4. Click the `Go Live` button in the bottom right corner of the VSCode window to preview.
+3. Open a browser and visit [`http://127.0.0.1:5000`](http://127.0.0.1:5000), fill in your GitHub access token, GitHub username and time zone. Click the `Generate` button to generate your GitHub anual data statistics chart.
 
-    In alternative, you can open the [`dist/index.html`](dist/index.html) file in the browser.
+    > This process may take a long time, depending on the size of your GitHub data. Please be patient.
 
 ## TODO
 
