@@ -4,30 +4,16 @@ Generate your GitHub yearly statistics chart.
 
 [简体中文](README_zh-CN.md) | English
 
+👉 Try it now: [`my-github-2024.vercel.app`](https://my-github-2024.vercel.app/)
+
 ## Example
 
 ![example](example.png)
 
-## Usage
+## Self-deployment
 
-0. Prepare a GitHub access token. You can generate a new token in [Personal Access Tokens (Classic)](https://github.com/settings/tokens). It should look like `ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`.
+1. Deploy the contents of this repository to Vercel, assuming the address is `https://my-github-2024.vercel.app/`
 
-1. Run the following command to install dependencies.
+2. Create a GitHub oauth application, with the Homepage URL and Authorization callback URL as `https://my-github-2024.vercel.app/` and `https://my-github-2024.vercel.app/callback` respectively.
 
-    ```shell
-    pip install -r requirements.txt
-    ```
-
-2. Run the following command to start the program.
-
-    ```shell
-    flask --app my-github-2024 run
-    ```
-
-3. Open a browser and visit [`http://127.0.0.1:5000`](http://127.0.0.1:5000), fill in your GitHub access token, GitHub username and time zone. Click the `Generate` button to generate your GitHub anual data statistics chart.
-
-    > This process may take a long time, depending on the size of your GitHub data. Please be patient.
-
-## TODO
-
-The online version is under development, please stay tuned.
+3. Set the `CLIENT_ID` and `CLIENT_SECRET` environment variables on Vercel to the Client ID and Client Secret of your GitHub oauth application.
