@@ -6,6 +6,12 @@
 
 **👉 立即体验: [`https://2024.ch3nyang.top`](https://2024.ch3nyang.top)**
 
+> [!WARNING]
+>
+> This tool involves a large number of network requests, and the server may be restricted by GitHub, resulting in failure to use it normally. If the server is down, please refer to the [Run locally](README.md#run-locally) section to run locally.
+>
+> 本工具涉及到海量网络请求，服务器很可能会被 GitHub 限制，导致无法正常使用。如遇服务器宕机，请参考[本地运行](#本地运行)部分在本地运行。
+
 ## 示例
 
 ![example](example.png)
@@ -23,7 +29,7 @@
     ```bash
     mkdir /var/www
     cd /var/www
-    git clone -b online https://github.com/WCY-dt/my-github-2024.git
+    git clone https://github.com/WCY-dt/my-github-2024.git
     cd my-github-2024
     ```
 
@@ -97,3 +103,47 @@
     ```
 
 9. 访问 `https://YOUR_URL` 即可查看效果。
+
+## 本地运行
+
+1. 克隆仓库：
+
+    ```bash
+    mkdir /var/www
+    cd /var/www
+    git clone https://github.com/WCY-dt/my-github-2024.git
+    cd my-github-2024
+    ```
+
+2. 创建 Github OAuth App：
+
+    访问 [GitHub Developer Settings](https://developer.github.com/settings/applications/new) 创建一个新的 OAuth App。其中，`Homepage URL` 和 `Authorization callback URL` 分别填写 `http://127.0.0.1:5000` 和 `http://127.0.0.1:5000/callback`。
+
+    获取 `Client ID` 和 `Client Secret`。
+
+3. 配置环境变量：
+
+    ```bash
+    nano .env
+    ```
+
+    `.env` 文件内容形如：
+
+    ```env
+    CLIENT_ID=your_client_id
+    CLIENT_SECRET=your_client_secret
+    ```
+
+4. 安装依赖：
+
+    ```bash
+    pip3 install -r requirements.txt
+    ```
+
+5. 运行：
+
+    ```bash
+    python3 my-github-2024.py
+    ```
+
+6. 访问 `http://127.0.0.1:5000` 即可查看效果。

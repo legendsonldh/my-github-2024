@@ -6,6 +6,12 @@ Generate your GitHub yearly statistics chart.
 
 **👉 Try it now: [`https://2024.ch3nyang.top`](https://2024.ch3nyang.top)**
 
+> [!WARNING]
+>
+> This tool involves a large number of network requests, and the server may be restricted by GitHub, resulting in failure to use it normally. If the server is down, please refer to the [Run locally](#run-locally) section to run locally.
+>
+> 本工具涉及到海量网络请求，服务器很可能会被 GitHub 限制，导致无法正常使用。如遇服务器宕机，请参考[本地运行](README_zh-CN.md#本地运行)部分在本地运行。
+
 ## Example
 
 ![example](example.png)
@@ -23,7 +29,7 @@ Generate your GitHub yearly statistics chart.
     ```bash
     mkdir /var/www
     cd /var/www
-    git clone -b online https://github.com/WCY-dt/my-github-2024.git
+    git clone https://github.com/WCY-dt/my-github-2024.git
     cd my-github-2024
     ```
 
@@ -97,3 +103,47 @@ Generate your GitHub yearly statistics chart.
     ```
 
 9. Visit `https://YOUR_URL` to see the effect.
+
+## Run locally
+
+1. Clone the repository:
+
+    ```bash
+    mkdir /var/www
+    cd /var/www
+    git clone https://github.com/WCY-dt/my-github-2024.git
+    cd my-github-2024
+    ```
+
+2. Create a Github OAuth App:
+
+    Visit [GitHub Developer Settings](https://developer.github.com/settings/applications/new) to create a new OAuth App. In the Homepage URL and Authorization callback URL, fill in `http://127.0.0.1:5000` and `http://127.0.0.1:5000/callback` respectively.
+
+    Get `Client ID` and `Client Secret`.
+
+3. Configure environment variables:
+
+    ```bash
+    nano .env
+    ```
+
+    `.env` file content is as follows:
+
+    ```env
+    CLIENT_ID=your_client_id
+    CLIENT_SECRET=your_client_secret
+    ```
+
+4. Install dependencies:
+
+    ```bash
+    pip3 install -r requirements.txt
+    ```
+
+5. Run:
+
+    ```bash
+    python3 my-github-2024.py
+    ```
+
+6. Visit `http://127.0.0.1:5000` to see the effect.
