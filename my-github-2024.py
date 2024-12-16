@@ -13,7 +13,7 @@ from flask import (
     send_from_directory,
     jsonify,
     Response,
-    copy_current_request_context,
+    stream_with_context,
 )
 import requests
 from dotenv import load_dotenv
@@ -119,7 +119,6 @@ def load():
 
 @app.route("/stream")
 def stream():
-    @copy_current_request_context
     def event_stream():
         while True:
             if session.get("context"):
@@ -127,7 +126,7 @@ def stream():
                 break
             time.sleep(1)
 
-    return Response(event_stream(), mimetype="text/event-stream")
+    return Response(stream_with_context(event_stream()), mimetype="text/event-stream")
 
 
 @app.route("/display")
