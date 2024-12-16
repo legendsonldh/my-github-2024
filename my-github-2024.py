@@ -13,6 +13,7 @@ from flask import (
     send_from_directory,
     jsonify,
     Response,
+    stream_with_context,
 )
 import requests
 from dotenv import load_dotenv
@@ -126,7 +127,7 @@ def display():
 
             yield render_template("template.html", context=context)
 
-    return Response(generate(), content_type="text/html")
+    return Response(stream_with_context(generate()), content_type="text/html")
 
 
 @app.route("/static/<path:filename>")
