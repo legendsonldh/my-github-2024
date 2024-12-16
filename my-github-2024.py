@@ -134,7 +134,10 @@ def load():
 
 @app.route("/wait")
 def wait():
-    return render_template("wait.html")
+    if user_contexts.get(session.get("username")) is not None:
+        return render_template("template.html", context=user_contexts.get(session.get("username")))
+    else:
+        return render_template("wait.html")
 
 
 @app.route("/display")
