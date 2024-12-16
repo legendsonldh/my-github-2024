@@ -257,16 +257,6 @@ def repos_languages_number(data):
     return data
 
 
-def repos_stargazer_number(data):
-    stargazers_num = 0
-    for repo in data["repos_details"]:
-        stargazers_num += repo["stargazers_num"]
-
-    data["stargazers_num"] = stargazers_num
-
-    return data
-
-
 def repos_fork_number(data):
     forks_num = 0
     for repo in data["repos_details"]:
@@ -294,12 +284,5 @@ def prs_merged_number(data):
 def issues_number(data):
     issues_number = len(data["issues_details"])
     data["issues_num"] = issues_number
-
-    return data
-
-
-def stars_number(data):
-    stars_number = len(data["stars_details"])
-    data["stars_num"] = stars_number
 
     return data

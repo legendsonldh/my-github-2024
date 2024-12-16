@@ -36,12 +36,6 @@ def prs_year(data, year):
     return data
 
 
-def stars_year(data, year):
-    data["stars_details"] = _filter_year(data["stars_details"], "created_time", year)
-
-    return data
-
-
 def json_key(data, key):
     if isinstance(data, list):
         return [json_key(x, key) for x in data]

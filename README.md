@@ -12,15 +12,16 @@ Generate your GitHub yearly statistics chart.
 
 ## Self-deployment
 
-1. Make sure you have installed Python and Pip:
+1. Make sure you have installed Python3.12 and other necessary dependencies:
 
     ```bash
-    apt install python3 python3-pip -y
+    apt install python3.12 python3-pip python3-gunicorn python3-virtualenv nginx certbot python3-certbot-nginx -y
     ```
 
 2. Clone the repository:
 
     ```bash
+    mkdir /var/www
     cd /var/www
     git clone -b online https://github.com/WCY-dt/my-github-2024.git
     cd my-github-2024
@@ -32,17 +33,16 @@ Generate your GitHub yearly statistics chart.
     nano .env
     ```
 
-    `.env` file content is as follows:
+    `.env` The file content is as follows:
 
     ```env
     CLIENT_ID=your_client_id
     CLIENT_SECRET=your_client_secret
     ```
 
-4. Start the virtual environment and install dependencies:
+4. Install dependencies:
 
     ```bash
-    pip3 install virtualenv
     virtualenv venv
     source venv/bin/activate
     pip3 install -r requirements.txt
@@ -72,16 +72,17 @@ Generate your GitHub yearly statistics chart.
 7. Configure SSL certificate:
 
     ```bash
-    apt install certbot python3-certbot-nginx -y
     certbot --nginx -d YOUR_URL
     certbot renew --dry-run
     ```
 
+    > You need to change `YOUR_URL` to your domain name.
+
 8. Configure Nginx:
 
     ```bash
-    apt install nginx -y
     cp my-github-2024 /etc/nginx/sites-available
+    rm /etc/nginx/sites-enabled/default
     ```
 
     > Before that, you need to modify `YOUR_URL` in the `my-github-2024` file to your domain name.
@@ -92,6 +93,7 @@ Generate your GitHub yearly statistics chart.
     ln -s /etc/nginx/sites-available/my-github-2024 /etc/nginx/sites-enabled
     nginx -t
     systemctl restart nginx
+    nginx -s reload
     ```
 
 9. Visit `https://YOUR_URL` to see the effect.

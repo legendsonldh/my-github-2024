@@ -53,7 +53,7 @@ class Github:
         return self
 
     def filter_all(self, year):
-        for filter_type in ["commits", "issues", "prs", "stars"]:
+        for filter_type in ["commits", "issues", "prs"]:
             self.filter_data(filter_type, year)
         return self
 
@@ -80,7 +80,6 @@ class Github:
             "prs",
             "prs_merged",
             "issues",
-            "stars",
         ]:
             self.count_data(count_type)
         return self
@@ -92,7 +91,6 @@ class Github:
             ("repos", "stargazer"),
             ("prs", "time"),
             ("issues", "time"),
-            ("stars", "time"),
         ]:
             self.sort_data(sort_type, sort_by)
         return self

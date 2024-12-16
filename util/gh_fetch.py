@@ -85,7 +85,7 @@ def _get_response(
     else:
         return response
     finally:
-        time.sleep(1)
+        time.sleep(0.5)
 
 
 def get_github_info(username, token, timezone):
@@ -112,11 +112,6 @@ def get_github_info(username, token, timezone):
         username=username, url=repos_url, token=token, timezone=timezone
     )
 
-    stars_url = data.get("starred_url").replace("{/owner}{/repo}", "")
-    stars_details = _get_user_stars(
-        username=username, url=stars_url, token=token, timezone=timezone
-    )
-
     return {
         "account_info": {
             "url": data.get("html_url"),
@@ -131,7 +126,6 @@ def get_github_info(username, token, timezone):
         "issues_details": issues_details,
         "prs_details": prs_details,
         "repos_details": repos_details,
-        "stars_details": stars_details,
     }
 
 
@@ -196,33 +190,6 @@ def _get_user_prs(
         )
 
     return prs_details, response
-
-
-@_paginate
-def _get_user_stars(
-    username, stars_url, token, timezone
-):
-    response = _get_response(
-        stars_url, token, accept="application/vnd.github.v3.star+json"
-    )
-    if response.status_code == 409:
-        return [], response
-    stars = response.json()
-
-    stars_details = []
-
-    for star in stars:
-        starred_time = _parse_time(star.get("starred_at"), timezone)
-
-        stars_details.append(
-            {
-                "url": star.get("repo").get("html_url"),
-                "name": star.get("repo").get("full_name"),
-                "created_time": starred_time,
-            }
-        )
-
-    return stars_details, response
 
 
 @_paginate

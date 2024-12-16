@@ -50,13 +50,3 @@ def prs_time(data):
     )
 
     return data
-
-
-def stars_time(data):
-    data["stars_details"] = sorted(
-        data["stars_details"],
-        key=lambda x: datetime.fromisoformat(x["created_time"]),
-        reverse=True,
-    )
-
-    return data
