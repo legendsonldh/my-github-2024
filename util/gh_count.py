@@ -2,7 +2,7 @@ import re
 from datetime import datetime, timedelta
 
 
-def _get_commit_type(message: str) -> str:
+def _get_commit_type(message):
     commit_type = re.split(r"[:(!/\s]", message)[0].lower()
     conventional_types = {
         "feat": ["feature", "feat", "features", "feats"],

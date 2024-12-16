@@ -3,7 +3,7 @@ from itertools import groupby
 # from pprint import pprint
 
 
-def get_context(year: int, data: dict, data_new_repo: dict) -> dict:
+def get_context(year, data, data_new_repo):
     # pprint(data)
 
     YEAR = year

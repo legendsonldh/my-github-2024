@@ -24,22 +24,35 @@
     cd my-github-2024
     ```
 
-3. 启动虚拟环境并安装依赖：
+3. 配置环境变量：
+
+    ```bash
+    nano .env
+    ```
+
+    `.env` 文件内容形如：
+
+    ```env
+    CLIENT_ID=your_client_id
+    CLIENT_SECRET=your_client_secret
+    ```
+
+4. 启动虚拟环境并安装依赖：
 
     ```bash
     pip3 install virtualenv
     virtualenv venv
     source venv/bin/activate
-    pip install -r requirements.txt
+    pip3 install -r requirements.txt
     ```
 
-4. 运行：
+5. 运行：
 
     ```bash
-    python3 my-github-2024.py
+    python3 my-github-2024.py &
     ```
 
-5. 安装并配置 Gunicorn：
+6. 安装并配置 Gunicorn：
 
     ```bash
     pip install gunicorn
@@ -53,7 +66,7 @@
     systemctl enable my-github-2024
     ```
 
-6. 配置 Nginx：
+7. 配置 Nginx：
 
     ```bash
     apt install nginx -y
@@ -68,4 +81,4 @@
     systemctl restart nginx
     ```
 
-7. 访问 `http://your-domain.com` 即可查看效果。
+8. 访问 `http://your-domain.com` 即可查看效果。

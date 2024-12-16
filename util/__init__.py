@@ -11,14 +11,14 @@ import util.gh_sort as gh_sort
 
 class Github:
     def __init__(
-        self, access_token: str, username: str, timezone: str = "Asia/Shanghai"
+        self, access_token, username, timezone = "Asia/Shanghai"
     ):
         self.access_token = access_token
         self.username = username
         self.timezone = self._parse_timezone(timezone)
         self.data = None
 
-    def _parse_timezone(self, tz_str: str):
+    def _parse_timezone(self, tz_str):
         try:
             return pytz.timezone(tz_str)
         except pytz.UnknownTimeZoneError:
@@ -33,31 +33,31 @@ class Github:
         self.data = get_github_info(self.username, self.access_token, self.timezone)
         return self
 
-    def filter_data(self, filter_type: str, year: int):
+    def filter_data(self, filter_type, year):
         filter_func = getattr(gh_filter, f"{filter_type}_year")
         self.data = filter_func(self.data, year)
         return self
 
-    def count_data(self, count_type: str):
+    def count_data(self, count_type):
         count_func = getattr(gh_count, f"{count_type}_number")
         self.data = count_func(self.data)
         return self
 
-    def sort_data(self, sort_type: str, sort_by: str):
+    def sort_data(self, sort_type, sort_by):
         sort_func = getattr(gh_sort, f"{sort_type}_{sort_by}")
         self.data = sort_func(self.data)
         return self
 
-    def filter_all(self, year: int):
+    def filter_all(self, year):
         for filter_type in ["commits", "issues", "prs", "stars"]:
             self.filter_data(filter_type, year)
         return self
 
-    def filter_repos(self, year: int):
+    def filter_repos(self, year):
         self.filter_data("repos", year)
         return self
 
-    def filter_json(self, key: dict):
+    def filter_json(self, key):
         self.data = gh_filter.json_key(self.data, key)
         return self
 
@@ -93,12 +93,12 @@ class Github:
             self.sort_data(sort_type, sort_by)
         return self
 
-    def read_from_file(self, filename: str):
+    def read_from_file(self, filename):
         with open(filename, "r", encoding="utf-8") as f:
             self.data = json.load(f)
         return self
 
-    def write_to_file(self, filename: str):
+    def write_to_file(self, filename):
         with open(filename, "w", encoding="utf-8") as f:
             f.write(json.dumps(self.result, indent=4))
         return self

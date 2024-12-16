@@ -4,11 +4,8 @@ from typing import Dict, List, Tuple, Any
 import urllib.parse
 import pytz
 
-URL = str
-JSON = Dict[str, Any] | List[Dict[str, Any]]
 
-
-def _parse_time(time: str, timezone: str) -> str:
+def _parse_time(time, timezone):
     return (
         datetime.strptime(time, "%Y-%m-%dT%H:%M:%SZ")
         .replace(tzinfo=pytz.UTC)
@@ -18,7 +15,7 @@ def _parse_time(time: str, timezone: str) -> str:
 
 
 def _paginate(func: callable) -> callable:
-    def wrapper(username: str, url: URL, token: str, timezone: str) -> JSON:
+    def wrapper(username, url, token, timezone):
         results = []
         while url:
             data, res = func(username, url, token, timezone)
@@ -40,11 +37,11 @@ def _paginate(func: callable) -> callable:
 
 
 def _get_response(
-    url: URL,
-    token: str,
-    per_page: int = 100,
-    accept: str = "application/vnd.github.v3+json",
-) -> requests.Response:
+    url,
+    token,
+    per_page = 100,
+    accept = "application/vnd.github.v3+json",
+):
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": accept,
@@ -67,7 +64,7 @@ def _get_response(
     return response
 
 
-def get_github_info(username: str, token: str, timezone: str) -> JSON:
+def get_github_info(username, token, timezone):
     user_url = f"https://api.github.com/users/{username}"
     response = _get_response(user_url, token)
     data = response.json()
@@ -116,8 +113,8 @@ def get_github_info(username: str, token: str, timezone: str) -> JSON:
 
 @_paginate
 def _get_user_issues(
-    username: str, issues_url: URL, token: str, timezone: str
-) -> Tuple[JSON, requests.Response]:
+    username, issues_url, token, timezone
+):
     response = _get_response(issues_url, token)
     if response.status_code == 409:
         return [], response
@@ -143,8 +140,8 @@ def _get_user_issues(
 
 @_paginate
 def _get_user_prs(
-    username: str, prs_url: URL, token: str, timezone: str
-) -> Tuple[JSON, requests.Response]:
+    username, prs_url, token, timezone
+):
     response = _get_response(prs_url, token)
     if response.status_code == 409:
         return [], response
@@ -179,8 +176,8 @@ def _get_user_prs(
 
 @_paginate
 def _get_user_stars(
-    username: str, stars_url: URL, token: str, timezone: str
-) -> Tuple[JSON, requests.Response]:
+    username, stars_url, token, timezone
+):
     response = _get_response(
         stars_url, token, accept="application/vnd.github.v3.star+json"
     )
@@ -206,8 +203,8 @@ def _get_user_stars(
 
 @_paginate
 def _get_user_repos(
-    username: str, repos_url: URL, token: str, timezone: str
-) -> Tuple[JSON, requests.Response]:
+    username, repos_url, token, timezone
+):
     response = _get_response(repos_url, token)
     if response.status_code == 409:
         return [], response
@@ -245,7 +242,7 @@ def _get_user_repos(
     return repos_details, response
 
 
-def _get_user_repo_languages(language_url: URL, token: str, timezone: str) -> JSON:
+def _get_user_repo_languages(language_url, token, timezone):
     response = _get_response(language_url, token)
     response.raise_for_status()
     languages_details = response.json()
@@ -255,8 +252,8 @@ def _get_user_repo_languages(language_url: URL, token: str, timezone: str) -> JS
 
 @_paginate
 def _get_user_commits(
-    username: str, commits_url: URL, token: str, timezone: str
-) -> Tuple[JSON, requests.Response]:
+    username, commits_url, token, timezone
+):
     response = _get_response(commits_url, token)
     if response.status_code == 409:
         return [], response

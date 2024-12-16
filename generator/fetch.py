@@ -31,7 +31,7 @@ KEY_NEW_REPO = {
 }
 
 
-def fetch_github(github, year: int, skip_fetch: bool = False) -> tuple:
+def fetch_github(github, year, skip_fetch = False):
     try:
         if not skip_fetch:
             origin = github.fetch_data().result
