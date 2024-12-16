@@ -45,18 +45,18 @@ document.getElementById('inputForm').addEventListener('submit', function (event)
         }),
     })
         .then(response => {
-            var eventSource = new EventSource('/stream');
-            eventSource.onmessage = function (e) {
-                eventSource.close();
-                window.location.href = "/display";
-            };
-            eventSource.onerror = function (e) {
-                document.querySelector('.loader').style.display = 'none';
-                alert("An error occurred while loading data.");
-            };
-            eventSource.onopen = function (e) {
-                console.log("Connection to server opened.");
-            };
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Error occurred while loading data.');
+            }
+        })
+        .then(data => {
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+            } else {
+                throw new Error('Invalid response from server.');
+            }
         })
         .catch(error => {
             console.error('Error:', error);

@@ -105,39 +105,17 @@ def load():
     if not all([access_token, username, timezone, year]):
         return jsonify({"redirect_url": url_for("index", year=year)})
 
-    def long_running_task(username):
-        github = Github(access_token, username, timezone)
-        result_data, result_new_repo = fetch_github(github, year, skip_fetch=False)
+    github = Github(access_token, username, timezone)
+    result_data, result_new_repo = fetch_github(github, year, skip_fetch=False)
 
-        if result_data is None or result_new_repo is None:
-            logging.error("Error fetching data from GitHub")
-            return
+    if result_data is None or result_new_repo is None:
+        logging.error("Error fetching data from GitHub")
+        return
 
-        context = get_context(year, result_data, result_new_repo)
-        user_contexts[username] = context
+    context = get_context(year, result_data, result_new_repo)
+    user_contexts[username] = context
 
-    threading.Thread(target=long_running_task, args=(username,)).start()
-    return jsonify({"redirect_url": url_for("stream")})
-
-
-@app.route("/stream")
-def stream():
-    username = session.get("username")
-
-    def event_stream():
-        while True:
-            logging.info("TaskRunning")
-            if user_contexts.get(username):
-                logging.info("TaskCompleted")
-                yield "data: TaskCompleted\n\n"
-                sys.stdout.flush()
-                break
-            else:
-                yield "data: TaskRunning\n\n"
-                sys.stdout.flush()
-            time.sleep(2)
-
-    return Response(stream_with_context(event_stream()), mimetype="text/event-stream")
+    return jsonify({"redirect_url": url_for("display")})
 
 
 @app.route("/display")
