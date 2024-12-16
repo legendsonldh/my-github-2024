@@ -47,9 +47,11 @@ document.getElementById('inputForm').addEventListener('submit', function (event)
         .then(response => {
             var eventSource = new EventSource('/stream');
             eventSource.onmessage = function (e) {
-                if (String('TaskCompleted') in String(e) || String('TaskCompleted') in String(e.data)) {
+                if (e.data && e.data.includes('TaskCompleted')) {
                     eventSource.close();
                     window.location.href = "/display";
+                } else {
+                    console.log(e.data);
                 }
             };
             event.onerror = function (e) {
