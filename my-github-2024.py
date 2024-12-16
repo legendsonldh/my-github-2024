@@ -1,6 +1,7 @@
 from util import Github
 from generator.fetch import fetch_github
 from generator.context import get_context
+from log.logging_config import setup_logging
 
 from flask import (
     Flask,
@@ -15,6 +16,7 @@ from flask import (
 import requests
 from dotenv import load_dotenv
 import os
+import logging
 
 
 app = Flask(__name__)
@@ -25,6 +27,8 @@ app.secret_key = secret_key
 load_dotenv()
 app.config['CLIENT_ID'] = os.getenv("CLIENT_ID")
 app.config['CLIENT_SECRET'] = os.getenv("CLIENT_SECRET")
+
+setup_logging()
 
 
 @app.before_request
@@ -71,7 +75,7 @@ def callback():
 def dashboard():
     access_token = session.get("access_token")
     headers = {"Authorization": f"bearer {access_token}"}
-    print("access_token:", access_token)
+    logging.info(f"access_token: {access_token}")
     user_response = requests.get("https://api.github.com/user", headers=headers)
     user_data = user_response.json()
     return render_template("dashboard.html", user=user_data, access_token=access_token)
@@ -106,6 +110,13 @@ def display():
 
     github = Github(access_token, username, timezone)
     result, result_new_repo = fetch_github(github, year, skip_fetch=False)
+
+    if result is None or result_new_repo is None:
+        logging.info(f"data: {result}")
+        logging.info(f"data_new_repo: {result_new_repo}")
+        logging.error("Error fetching data from GitHub")
+        return "Error fetching data from GitHub", 500
+    
     context = get_context(year, result, result_new_repo)
 
     return render_template("template.html", context=context)

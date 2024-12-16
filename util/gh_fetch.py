@@ -1,8 +1,13 @@
+from log.logging_config import setup_logging
+
 import requests
 from datetime import datetime
-from typing import Dict, List, Tuple, Any
 import urllib.parse
 import pytz
+import logging
+
+
+setup_logging()
 
 
 def _parse_time(time, timezone):
@@ -53,7 +58,7 @@ def _get_response(
     new_query_string = urllib.parse.urlencode(query_params, doseq=True)
     url = urllib.parse.urlunparse(parsed_url._replace(query=new_query_string))
 
-    print(f"Fetching data from {url}...")
+    logging.info(f"Fetching data from {url}...")
 
     response = requests.get(url, headers=headers)
     if response.status_code == 409:  # Empty repository
@@ -263,7 +268,6 @@ def _get_user_commits(
     commits_details = []
 
     for commit in commits:
-        # print(json.dumps(commit, indent=4))
         committer = None
         try:
             committer = commit.get("committer").get("login")

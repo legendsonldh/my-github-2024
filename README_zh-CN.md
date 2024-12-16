@@ -64,7 +64,7 @@
     启动服务：
 
     ```bash
-    sudo systemctl daemon-reload
+    systemctl daemon-reload
     systemctl start my-github-2024
     systemctl enable my-github-2024
     ```

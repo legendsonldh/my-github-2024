@@ -1,12 +1,16 @@
-import json
-from pprint import pprint
-import pytz
-from datetime import timedelta, timezone as dt_timezone
-
 from util.gh_fetch import get_github_info
 import util.gh_filter as gh_filter
 import util.gh_count as gh_count
 import util.gh_sort as gh_sort
+from log.logging_config import setup_logging
+
+import json
+import pytz
+from datetime import timedelta, timezone as dt_timezone
+import logging
+
+
+setup_logging()
 
 
 class Github:
@@ -112,7 +116,7 @@ class Github:
             return type(data).__name__
 
     def print_result_structure(self):
-        pprint(self._get_result_structure(self.result))
+        logging.info(f"Result structure: ")
         return self
 
     @property

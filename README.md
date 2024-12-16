@@ -64,7 +64,7 @@ Generate your GitHub yearly statistics chart.
     Start the service:
 
     ```bash
-    sudo systemctl daemon-reload
+    systemctl daemon-reload
     systemctl start my-github-2024
     systemctl enable my-github-2024
     ```
@@ -95,4 +95,3 @@ Generate your GitHub yearly statistics chart.
     ```
 
 9. Visit `https://YOUR_URL` to see the effect.
-

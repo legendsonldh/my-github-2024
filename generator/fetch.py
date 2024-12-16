@@ -1,4 +1,7 @@
-# from pprint import pprint
+from log.logging_config import setup_logging
+import logging
+
+setup_logging()
 
 KEY = {
     "commits_daily_num": "dict",
@@ -49,8 +52,6 @@ def fetch_github(github, year, skip_fetch = False):
             .result
         )
 
-        # pprint(data)
-
         github.result = origin
         data_new_repo = (
             github.filter_all(year=year)
@@ -62,8 +63,10 @@ def fetch_github(github, year, skip_fetch = False):
         )
 
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logging.error(f"Error fetching data from GitHub: {e}")
+        return None, None
     else:
-        print("Fetched successfully!")
-
-    return data, data_new_repo
+        logging.info(f"data: {data}")
+        logging.info(f"data_new_repo: {data_new_repo}")
+        logging.info("Data fetched successfully")
+        return data, data_new_repo

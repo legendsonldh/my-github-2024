@@ -1,11 +1,7 @@
 from itertools import groupby
 
-# from pprint import pprint
-
 
 def get_context(year, data, data_new_repo):
-    # pprint(data)
-
     YEAR = year
     AVATAR = data["account_info"]["avatar"]
     USERNAME = data["account_info"]["username"]
