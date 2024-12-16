@@ -36,6 +36,8 @@ def _paginate(func: callable) -> callable:
             data, res, cont = func(username, url, token, timezone, year)
             if data:
                 results.extend(data)
+            if len(results) > 10000:
+                return results
             links = res.headers.get("Link")
             if links and cont:
                 next_url = None
@@ -211,31 +213,35 @@ def _get_user_repos(
     repos_details = []
 
     for repo in repos:
-        if repo.get("fork"):
-            continue
+        try:
+            if repo.get("fork"):
+                continue
 
-        language_url = repo.get("languages_url")
-        languages_details = _get_user_repo_languages(
-            language_url, token=token
-        )
+            language_url = repo.get("languages_url")
+            languages_details = _get_user_repo_languages(
+                language_url, token=token
+            )
 
-        commits_url = repo.get("commits_url").replace("{/sha}", "")
-        commits_details = _get_user_commits(
-            username=username, url=commits_url, token=token, timezone=timezone, year=year
-        )
+            commits_url = repo.get("commits_url").replace("{/sha}", "")
+            commits_details = _get_user_commits(
+                username=username, url=commits_url, token=token, timezone=timezone, year=year
+            )
 
-        repos_details.append(
-            {
-                "url": repo.get("html_url"),
-                "name": repo.get("name"),
-                "description": repo.get("description"),
-                "created_time": repo.get("created_at"),
-                "stargazers_num": repo.get("stargazers_count"),
-                "forks_num": repo.get("forks_count"),
-                "languages_num": languages_details,
-                "commits_details": commits_details,
-            }
-        )
+            repos_details.append(
+                {
+                    "url": repo.get("html_url"),
+                    "name": repo.get("name"),
+                    "description": repo.get("description"),
+                    "created_time": repo.get("created_at"),
+                    "stargazers_num": repo.get("stargazers_count"),
+                    "forks_num": repo.get("forks_count"),
+                    "languages_num": languages_details,
+                    "commits_details": commits_details,
+                }
+            )
+        except Exception as e:
+            logging.error(f"Failed to fetch repo: {e}")
+            pass
 
     return repos_details, response, True
 
