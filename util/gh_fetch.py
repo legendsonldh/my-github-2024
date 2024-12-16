@@ -13,12 +13,20 @@ setup_logging()
 
 
 def _parse_time(time, timezone):
-    return (
-        datetime.strptime(time, "%Y-%m-%dT%H:%M:%SZ")
-        .replace(tzinfo=pytz.UTC)
-        .astimezone(timezone)
-        .isoformat()
-    )
+    result = None
+    try:
+        result = (
+            datetime.strptime(time, "%Y-%m-%dT%H:%M:%SZ")
+            .replace(tzinfo=pytz.UTC)
+            .astimezone(timezone)
+            .isoformat()
+        )
+    except Exception as e:
+        logging.error(f"Failed to parse time: {e}")
+        logging.error(f"Time: {time}")
+        result = datetime(2000, 1, 1).isoformat()
+    finally:
+        return result
 
 
 def _paginate(func: callable) -> callable:
