@@ -87,6 +87,22 @@ def commits_monthly_number(data):
                 repo_commits_monthly_list.append(0)
         repo["commits_monthly_num"] = repo_commits_monthly_list
 
+    for pr in data["prs_details"]:
+        pr_month = datetime.fromisoformat(pr["created_time"]).month
+
+        if pr_month in commits_monthly:
+            commits_monthly[pr_month] += 1
+        else:
+            commits_monthly[pr_month] = 1
+
+    for issue in data["issues_details"]:
+        issue_month = datetime.fromisoformat(issue["created_time"]).month
+
+        if issue_month in commits_monthly:
+            commits_monthly[issue_month] += 1
+        else:
+            commits_monthly[issue_month] = 1
+
     commits_monthly_list = []
     for i in range(1, 13):
         if i in commits_monthly:
@@ -121,6 +137,22 @@ def commits_weekdaily_number(data):
             else:
                 repo_commits_weekly_list.append(0)
         repo["commits_weekdaily_num"] = repo_commits_weekly_list
+
+    for pr in data["prs_details"]:
+        pr_weekday = datetime.fromisoformat(pr["created_time"]).weekday()
+
+        if pr_weekday in commits_weekly:
+            commits_weekly[pr_weekday] += 1
+        else:
+            commits_weekly[pr_weekday] = 1
+
+    for issue in data["issues_details"]:
+        issue_weekday = datetime.fromisoformat(issue["created_time"]).weekday()
+
+        if issue_weekday in commits_weekly:
+            commits_weekly[issue_weekday] += 1
+        else:
+            commits_weekly[issue_weekday] = 1
 
     commits_weekly_list = []
     for i in range(7):
@@ -167,6 +199,22 @@ def commits_daily_number(data):
 
         repo["commits_daily_num"] = repo_commmits_daily_list
 
+    for pr in data["prs_details"]:
+        pr_date = datetime.fromisoformat(pr["created_time"]).date().isoformat()
+
+        if pr_date in commits_daily:
+            commits_daily[pr_date] += 1
+        else:
+            commits_daily[pr_date] = 1
+
+    for issue in data["issues_details"]:
+        issue_date = datetime.fromisoformat(issue["created_time"]).date().isoformat()
+
+        if issue_date in commits_daily:
+            commits_daily[issue_date] += 1
+        else:
+            commits_daily[issue_date] = 1
+
     commits_daily_list = {}
 
     for i in range(2000, datetime.now().year + 2):
@@ -209,6 +257,22 @@ def commits_hourly_number(data):
             else:
                 repo_commits_hourly_list.append(0)
         repo["commits_hourly_num"] = repo_commits_hourly_list
+
+    for pr in data["prs_details"]:
+        pr_hour = datetime.fromisoformat(pr["created_time"]).hour
+
+        if pr_hour in commits_hourly:
+            commits_hourly[pr_hour] += 1
+        else:
+            commits_hourly[pr_hour] = 1
+
+    for issue in data["issues_details"]:
+        issue_hour = datetime.fromisoformat(issue["created_time"]).hour
+
+        if issue_hour in commits_hourly:
+            commits_hourly[issue_hour] += 1
+        else:
+            commits_hourly[issue_hour] = 1
 
     commits_hourly_list = []
     for i in range(24):

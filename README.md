@@ -6,6 +6,13 @@ Generate your GitHub yearly statistics chart.
 
 **👉 Try it now: [`https://2024.ch3nyang.top`](https://2024.ch3nyang.top)**
 
+> [!INFO]
+>
+> Since this project counts every commits, it may take 1-10 minutes to generate. Please be patient.
+>
+> 由于本项目统计了每一次提交的信息，因此可能需要 1-10 分钟的时间来生成。请耐心等待。
+
+
 > [!WARNING]
 >
 > This tool involves a large number of network requests, and the server may be restricted by GitHub, resulting in failure to use it normally. If the server is down, please refer to the [Run locally](#run-locally) section to run locally.

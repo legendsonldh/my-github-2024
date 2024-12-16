@@ -214,9 +214,6 @@ def _get_user_repos(
 
     for repo in repos:
         try:
-            if repo.get("fork"):
-                continue
-
             language_url = repo.get("languages_url")
             languages_details = _get_user_repo_languages(
                 language_url, token=token
