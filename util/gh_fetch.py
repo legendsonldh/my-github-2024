@@ -5,6 +5,8 @@ from datetime import datetime
 import urllib.parse
 import pytz
 import logging
+from tenacity import retry, stop_after_attempt, wait_exponential
+import time
 
 
 setup_logging()
@@ -41,32 +43,41 @@ def _paginate(func: callable) -> callable:
     return wrapper
 
 
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
 def _get_response(
     url,
     token,
     per_page = 100,
     accept = "application/vnd.github.v3+json",
 ):
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": accept,
-    }
+    response = None
+    try:
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": accept,
+        }
 
-    parsed_url = urllib.parse.urlparse(url)
-    query_params = urllib.parse.parse_qs(parsed_url.query)
-    query_params["per_page"] = str(per_page)
-    new_query_string = urllib.parse.urlencode(query_params, doseq=True)
-    url = urllib.parse.urlunparse(parsed_url._replace(query=new_query_string))
+        parsed_url = urllib.parse.urlparse(url)
+        query_params = urllib.parse.parse_qs(parsed_url.query)
+        query_params["per_page"] = str(per_page)
+        new_query_string = urllib.parse.urlencode(query_params, doseq=True)
+        url = urllib.parse.urlunparse(parsed_url._replace(query=new_query_string))
 
-    logging.info(f"Fetching data from {url}...")
+        logging.info(f"Fetching data from {url}...")
 
-    response = requests.get(url, headers=headers)
-    if response.status_code == 409:  # Empty repository
+        response = requests.get(url, headers=headers)
+        if response.status_code == 409:  # Empty repository
+            return response
+
+        response.raise_for_status()
+    except Exception as e:
+        logging.error(f"Failed to fetch data from {url}: {e}")
+        logging.error(f"Response: {response}")
+        raise e
+    else:
         return response
-
-    response.raise_for_status()
-
-    return response
+    finally:
+        time.sleep(1)
 
 
 def get_github_info(username, token, timezone):
