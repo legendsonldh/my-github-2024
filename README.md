@@ -4,16 +4,68 @@ Generate your GitHub yearly statistics chart.
 
 [简体中文](README_zh-CN.md) | English
 
-👉 Try it now: [`my-github-2024.vercel.app`](https://my-github-2024.vercel.app/)
-
 ## Example
 
 ![example](example.png)
 
 ## Self-deployment
 
-1. Deploy the contents of this repository to Vercel, assuming the address is `https://my-github-2024.vercel.app/`
+1. Make sure you have Python and Pip installed:
 
-2. Create a GitHub oauth application, with the Homepage URL and Authorization callback URL as `https://my-github-2024.vercel.app/` and `https://my-github-2024.vercel.app/callback` respectively.
+    ```bash
+    apt install python3 python3-pip -y
+    ```
 
-3. Set the `CLIENT_ID` and `CLIENT_SECRET` environment variables on Vercel to the Client ID and Client Secret of your GitHub oauth application.
+2. Clone the repository:
+
+    ```bash
+    cd /var/www
+    git clone -b online https://github.com/WCY-dt/my-github-2024.git
+    cd my-github-2024
+    ```
+
+3. Start the virtual environment and install dependencies:
+
+    ```bash
+    pip3 install virtualenv
+    virtualenv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+    ```
+
+4. Run:
+
+    ```bash
+    python3 my-github-2024.py
+    ```
+
+5. Install and configure Gunicorn:
+
+    ```bash
+    pip install gunicorn
+    mv my-github-2024.service /etc/systemd/system
+    ```
+
+    Start the service:
+
+    ```bash
+    systemctl start my-github-2024
+    systemctl enable my-github-2024
+    ```
+
+6. Configure Nginx:
+
+    ```bash
+    apt install nginx -y
+    mv my-github-2024 /etc/nginx/sites-available
+    ```
+
+    Enable the site:
+
+    ```bash
+    ln -s /etc/nginx/sites-available/my-github-2024 /etc/nginx/sites-enabled
+    nginx -t
+    systemctl restart nginx
+    ```
+
+7. Visit `http://your-domain.com` to see the effect.

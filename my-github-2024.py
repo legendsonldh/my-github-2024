@@ -23,8 +23,8 @@ secret_key = os.urandom(24)
 app.secret_key = secret_key
 
 load_dotenv()
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+app.config['CLIENT_ID'] = os.getenv("CLIENT_ID")
+app.config['CLIENT_SECRET'] = os.getenv("CLIENT_SECRET")
 
 
 @app.before_request
@@ -44,7 +44,9 @@ def index():
 @app.route("/login")
 def login():
     github_authorize_url = "https://github.com/login/oauth/authorize"
-    return redirect(f"{github_authorize_url}?client_id={CLIENT_ID}&scope=repo,read:org")
+    return redirect(
+        f"{github_authorize_url}?client_id={app.config['CLIENT_ID']}&scope=repo,read:org"
+    )
 
 
 @app.route("/callback")
@@ -54,8 +56,8 @@ def callback():
         "https://github.com/login/oauth/access_token",
         headers={"Accept": "application/json"},
         data={
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
+            "client_id": app.config["CLIENT_ID"],
+            "client_secret": app.config["CLIENT_SECRET"],
             "code": code,
         },
     )
@@ -112,3 +114,7 @@ def display():
 @app.route("/static/<path:filename>")
 def static_files(filename):
     return send_from_directory("static", filename)
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)

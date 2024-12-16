@@ -4,16 +4,68 @@
 
 [English](README.md) | 简体中文
 
-👉立即体验：[`my-github-2024.vercel.app`](https://my-github-2024.vercel.app/)
-
 ## 示例
 
 ![example](example.png)
 
 ## 自行部署
 
-1. 将本仓库内容部署到 Vercel 上，假设地址为 `https://my-github-2024.vercel.app/`
+1. 确保您已安装 Python 和 Pip：
 
-2. 创建一个 GitHub oauth 应用，Homepage URL 和 Authorization callback URL 分贝为 `https://my-github-2024.vercel.app/` 和 `https://my-github-2024.vercel.app/callback`。
+    ```bash
+    apt install python3 python3-pip -y
+    ```
 
-3. 在 Vercel 上将 `CLIENT_ID` 和 `CLIENT_SECRET` 环境变量设置为你的 GitHub oauth 应用的 Client ID 和 Client Secret。
+2. 克隆仓库：
+
+    ```bash
+    cd /var/www
+    git clone -b online https://github.com/WCY-dt/my-github-2024.git
+    cd my-github-2024
+    ```
+
+3. 启动虚拟环境并安装依赖：
+
+    ```bash
+    pip3 install virtualenv
+    virtualenv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+    ```
+
+4. 运行：
+
+    ```bash
+    python3 my-github-2024.py
+    ```
+
+5. 安装并配置 Gunicorn：
+
+    ```bash
+    pip install gunicorn
+    mv my-github-2024.service /etc/systemd/system
+    ```
+
+    启动服务：
+
+    ```bash
+    systemctl start my-github-2024
+    systemctl enable my-github-2024
+    ```
+
+6. 配置 Nginx：
+
+    ```bash
+    apt install nginx -y
+    mv my-github-2024 /etc/nginx/sites-available
+    ```
+
+    启用站点：
+
+    ```bash
+    ln -s /etc/nginx/sites-available/my-github-2024 /etc/nginx/sites-enabled
+    nginx -t
+    systemctl restart nginx
+    ```
+
+7. 访问 `http://your-domain.com` 即可查看效果。
