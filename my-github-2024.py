@@ -102,30 +102,31 @@ def load():
 @app.route("/display")
 def display():
     def generate():
-        access_token = session.get("access_token")
-        username = session.get("username")
-        timezone = session.get("timezone")
-        year = session.get("year")
+        with app.app_context():
+            access_token = session.get("access_token")
+            username = session.get("username")
+            timezone = session.get("timezone")
+            year = session.get("year")
 
-        if not all([access_token, username, timezone, year]):
-            yield redirect(url_for("index"))
+            if not all([access_token, username, timezone, year]):
+                yield redirect(url_for("index"))
 
-        yield "Processing, please wait..."
+            yield "Processing, please wait..."
 
-        github = Github(access_token, username, timezone)
-        result, result_new_repo = fetch_github(github, year, skip_fetch=False)
+            github = Github(access_token, username, timezone)
+            result, result_new_repo = fetch_github(github, year, skip_fetch=False)
 
-        if result is None or result_new_repo is None:
-            logging.info(f"data: {result}")
-            logging.info(f"data_new_repo: {result_new_repo}")
-            logging.error("Error fetching data from GitHub")
-            yield "Error fetching data from GitHub", 500
+            if result is None or result_new_repo is None:
+                logging.info(f"data: {result}")
+                logging.info(f"data_new_repo: {result_new_repo}")
+                logging.error("Error fetching data from GitHub")
+                yield "Error fetching data from GitHub", 500
 
-        context = get_context(year, result, result_new_repo)
+            context = get_context(year, result, result_new_repo)
 
-        yield render_template("template.html", context=context)
+            yield render_template("template.html", context=context)
 
-    return Response(generate(), content_type='text/html')
+    return Response(generate(), content_type="text/html")
 
 
 @app.route("/static/<path:filename>")
