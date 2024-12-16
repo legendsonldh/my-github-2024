@@ -41,7 +41,7 @@ def fetch_github(github, year, skip_fetch = False):
 
     try:
         if not skip_fetch:
-            origin = github.fetch_data().result
+            origin = github.fetch_data(year=year).result
 
         github.result = origin
         data = (

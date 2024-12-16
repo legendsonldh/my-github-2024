@@ -33,8 +33,8 @@ class Github:
             else:
                 raise ValueError(f"Invalid timezone format: {tz_str}")
 
-    def fetch_data(self):
-        self.data = get_github_info(self.username, self.access_token, self.timezone)
+    def fetch_data(self, year):
+        self.data = get_github_info(self.username, self.access_token, self.timezone, year)
         return self
 
     def filter_data(self, filter_type, year):
