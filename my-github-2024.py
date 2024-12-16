@@ -121,10 +121,14 @@ def load():
 def stream():
     def event_stream():
         while True:
+            logging.info("TaskRunning")
             if session.get("context"):
+                logging.info("TaskCompleted")
                 yield "data: TaskCompleted\n\n"
                 break
-            time.sleep(1)
+            else:
+                yield "data: TaskRunning\n\n"
+            time.sleep(2)
 
     return Response(stream_with_context(event_stream()), mimetype="text/event-stream")
 
