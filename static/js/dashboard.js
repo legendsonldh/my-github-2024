@@ -47,16 +47,15 @@ document.getElementById('inputForm').addEventListener('submit', function (event)
         .then(response => {
             var eventSource = new EventSource('/stream');
             eventSource.onmessage = function (e) {
-                if (e.data && e.data.includes('TaskCompleted')) {
-                    eventSource.close();
-                    window.location.href = "/display";
-                } else {
-                    console.log(e.data);
-                }
+                eventSource.close();
+                window.location.href = "/display";
             };
-            event.onerror = function (e) {
+            eventSource.onerror = function (e) {
                 document.querySelector('.loader').style.display = 'none';
                 alert("An error occurred while loading data.");
+            };
+            eventSource.onopen = function (e) {
+                console.log("Connection to server opened.");
             };
         })
         .catch(error => {
