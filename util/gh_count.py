@@ -257,6 +257,16 @@ def repos_languages_number(data):
     return data
 
 
+def repos_stargazer_number(data):
+    stargazers_num = 0
+    for repo in data["repos_details"]:
+        stargazers_num += repo["stargazers_num"]
+
+    data["stargazers_num"] = stargazers_num
+
+    return data
+
+
 def repos_fork_number(data):
     forks_num = 0
     for repo in data["repos_details"]:
