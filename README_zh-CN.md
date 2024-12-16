@@ -1,12 +1,14 @@
-# my-github-2024
+<div align="center">
+  <img src="logo.png" alt="logo" />
 
-生成你的 GitHub 年度数据统计图。
+  生成你的 GitHub 年度数据统计图。
 
-[English](README.md) | 简体中文
+  [English](README.md) | 简体中文
 
-**👉 立即体验: [`https://2024.ch3nyang.top`](https://2024.ch3nyang.top)**
+  <strong style="font-size: 20px;">👉 立即体验: <a href="https://2024.ch3nyang.top">https://2024.ch3nyang.top</a></strong>
+</div>
 
-> [!INFO]
+> [!NOTE]
 >
 > Since this project counts every commits, it may take 1-10 minutes to generate. Please be patient.
 >

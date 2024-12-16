@@ -1,12 +1,14 @@
-# my-github-2024
+<div align="center">
+  <img src="logo.png" alt="logo" />
 
-Generate your GitHub yearly statistics chart.
+  Generate your GitHub yearly statistics chart.
 
-[简体中文](README_zh-CN.md) | English
+  [简体中文](README_zh-CN.md) | English
 
-**👉 Try it now: [`https://2024.ch3nyang.top`](https://2024.ch3nyang.top)**
+  <strong style="font-size: 20px;">👉 Try it now: <a href="https://2024.ch3nyang.top">https://2024.ch3nyang.top</a></strong>
+</div>
 
-> [!INFO]
+> [!NOTE]
 >
 > Since this project counts every commits, it may take 1-10 minutes to generate. Please be patient.
 >
