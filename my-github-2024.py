@@ -12,6 +12,7 @@ from flask import (
     render_template,
     send_from_directory,
     jsonify,
+    Response,
 )
 import requests
 from dotenv import load_dotenv
@@ -100,26 +101,31 @@ def load():
 
 @app.route("/display")
 def display():
-    access_token = session.get("access_token")
-    username = session.get("username")
-    timezone = session.get("timezone")
-    year = session.get("year")
+    def generate():
+        access_token = session.get("access_token")
+        username = session.get("username")
+        timezone = session.get("timezone")
+        year = session.get("year")
 
-    if not all([access_token, username, timezone, year]):
-        return redirect(url_for("index"))
+        if not all([access_token, username, timezone, year]):
+            yield redirect(url_for("index"))
 
-    github = Github(access_token, username, timezone)
-    result, result_new_repo = fetch_github(github, year, skip_fetch=False)
+        yield "Processing, please wait..."
 
-    if result is None or result_new_repo is None:
-        logging.info(f"data: {result}")
-        logging.info(f"data_new_repo: {result_new_repo}")
-        logging.error("Error fetching data from GitHub")
-        return "Error fetching data from GitHub", 500
-    
-    context = get_context(year, result, result_new_repo)
+        github = Github(access_token, username, timezone)
+        result, result_new_repo = fetch_github(github, year, skip_fetch=False)
 
-    return render_template("template.html", context=context)
+        if result is None or result_new_repo is None:
+            logging.info(f"data: {result}")
+            logging.info(f"data_new_repo: {result_new_repo}")
+            logging.error("Error fetching data from GitHub")
+            yield "Error fetching data from GitHub", 500
+
+        context = get_context(year, result, result_new_repo)
+
+        yield render_template("template.html", context=context)
+
+    return Response(generate(), content_type='text/html')
 
 
 @app.route("/static/<path:filename>")
