@@ -32,6 +32,10 @@ KEY_NEW_REPO = {
 
 
 def fetch_github(github, year, skip_fetch = False):
+    origin = None
+    data = None
+    data_new_repo = None
+
     try:
         if not skip_fetch:
             origin = github.fetch_data().result

@@ -4,6 +4,8 @@
 
 [English](README.md) | 简体中文
 
+**👉 立即体验: [`https://2024.ch3nyang.top`](https://2024.ch3nyang.top)**
+
 ## 示例
 
 ![example](example.png)
@@ -49,29 +51,40 @@
 5. 运行：
 
     ```bash
-    python3 my-github-2024.py &
+    nohup python3 my-github-2024.py &
     ```
 
 6. 安装并配置 Gunicorn：
 
     ```bash
-    pip install gunicorn
-    mv my-github-2024.service /etc/systemd/system
+    pip3 install gunicorn
+    cp my-github-2024.service /etc/systemd/system
     ```
 
     启动服务：
 
     ```bash
+    sudo systemctl daemon-reload
     systemctl start my-github-2024
     systemctl enable my-github-2024
     ```
 
-7. 配置 Nginx：
+7. 配置 SSL 证书：
+
+    ```bash
+    apt install certbot python3-certbot-nginx -y
+    certbot --nginx -d YOUR_URL
+    certbot renew --dry-run
+    ```
+
+8. 配置 Nginx：
 
     ```bash
     apt install nginx -y
-    mv my-github-2024 /etc/nginx/sites-available
+    cp my-github-2024 /etc/nginx/sites-available
     ```
+
+    > 在此之前，你需要修改 `my-github-2024` 文件中的 `YOUR_URL` 为你的域名。
 
     启用站点：
 
@@ -81,4 +94,4 @@
     systemctl restart nginx
     ```
 
-8. 访问 `http://your-domain.com` 即可查看效果。
+9. 访问 `https://YOUR_URL` 即可查看效果。
