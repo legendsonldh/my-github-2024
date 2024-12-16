@@ -21,6 +21,7 @@ import os
 import logging
 import time
 import threading
+import sys
 
 
 app = Flask(__name__)
@@ -129,9 +130,11 @@ def stream():
             if user_contexts.get(username):
                 logging.info("TaskCompleted")
                 yield "data: TaskCompleted\n\n"
+                sys.stdout.flush()
                 break
             else:
                 yield "data: TaskRunning\n\n"
+                sys.stdout.flush()
             time.sleep(2)
 
     return Response(stream_with_context(event_stream()), mimetype="text/event-stream")

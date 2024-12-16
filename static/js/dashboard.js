@@ -47,15 +47,12 @@ document.getElementById('inputForm').addEventListener('submit', function (event)
         .then(response => {
             var eventSource = new EventSource('/stream');
             eventSource.onmessage = function (e) {
-                console.log('Event:', e);
-                console.log('Event.data:', e.data);
-                if (e.data === 'TaskCompleted') {
+                if (String('TaskCompleted') in String(e) || String('TaskCompleted') in String(e.data)) {
                     eventSource.close();
                     window.location.href = "/display";
                 }
             };
             event.onerror = function (e) {
-                console.error('Event:', e);
                 document.querySelector('.loader').style.display = 'none';
                 alert("An error occurred while loading data.");
             };
