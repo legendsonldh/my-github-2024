@@ -1,12 +1,4 @@
 document.getElementById('inputForm').addEventListener('submit', function (event) {
-    var accessToken = document.getElementById('accessToken').value;
-    if (!accessToken.startsWith('ghp_')) {
-        event.preventDefault();
-        alert('Access Token must start with "ghp_"');
-    }
-});
-
-document.getElementById('inputForm').addEventListener('submit', function (event) {
     event.preventDefault();
     var accessToken = document.getElementById('accessToken').value;
     var username = document.getElementById('username').value;
@@ -22,7 +14,12 @@ document.getElementById('inputForm').addEventListener('submit', function (event)
     // Messages to display
     var messages = [
         "Loading data, please sit down and relax",
-        "数据加载中，请坐和放宽"
+        "数据加载中，请坐和放宽",
+        "Chargement des données, veuillez vous asseoir et vous détendre",
+        "Cargando datos, por favor siéntese y relájese",
+        "データを読み込んでいます、座ってリラックスしてください",
+        "데이터를로드 중입니다. 앉아서 편안하게하세요",
+        "Загрузка данных, пожалуйста, сядьте и расслабьтесь",
     ];
     var messageIndex = 0;
 
@@ -32,10 +29,10 @@ document.getElementById('inputForm').addEventListener('submit', function (event)
         messageIndex = (messageIndex + 1) % messages.length;
     }
 
-    // Change the loading text every 3 seconds
-    setInterval(changeLoadingText, 3000);
+    // Change the loading text every 1.5 seconds
+    setInterval(changeLoadingText, 1500);
 
-    fetch("/load_data", {
+    fetch("/load", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -45,17 +42,25 @@ document.getElementById('inputForm').addEventListener('submit', function (event)
             username: username,
             timezone: timezone,
             year: year
-        })
+        }),
     })
-        .then(response => response.json())
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Error occurred while loading data.');
+            }
+        })
         .then(data => {
-            window.location.href = data.redirect_url;
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+            } else {
+                throw new Error('Invalid response from server.');
+            }
         })
         .catch(error => {
-            document.querySelector('.loader').style.display = 'none';
-            messages = [
-                "An error occurred while loading data, check your python console for more information",
-            ];
             console.error('Error:', error);
+            document.querySelector('.loader').style.display = 'none';
+            alert("An error occurred while loading data.");
         });
 });

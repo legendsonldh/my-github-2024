@@ -1,0 +1,14 @@
+[Unit]
+Description=Gunicorn instance to serve my-github-2024
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/var/www/my-github-2024
+Environment="PATH=/var/www/my-github-2024/venv/bin"
+EnvironmentFile=/var/www/my-github-2024/.env
+ExecStart=/var/www/my-github-2024/venv/bin/gunicorn --workers 3 --bind 0.0.0.0:5000 app:app
+
+[Install]
+WantedBy=multi-user.target

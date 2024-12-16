@@ -1,6 +1,7 @@
-import os
+from log.logging_config import setup_logging
+import logging
 
-# from pprint import pprint
+setup_logging()
 
 KEY = {
     "commits_daily_num": "dict",
@@ -32,29 +33,28 @@ KEY_NEW_REPO = {
     "languages_num": "dict",
 }
 
-def fetch_github(github, year: int, skip_fetch: bool = False) -> tuple:
+
+def fetch_github(github, year, skip_fetch = False):
+    origin = None
+    data = None
+    data_new_repo = None
+
     try:
         if not skip_fetch:
-            origin = github \
-                .fetch_data() \
-                .result
+            origin = github.fetch_data(year=year).result
 
         github.result = origin
         data = (
-            github
-            .filter_all(year=year)
+            github.filter_all(year=year)
             .sort_all()
             .count_all()
             .filter_json(key=KEY)
             .result
         )
 
-        # pprint(data)
-
         github.result = origin
         data_new_repo = (
-            github
-            .filter_all(year=year)
+            github.filter_all(year=year)
             .filter_repos(year=year)
             .sort_all()
             .count_all()
@@ -63,8 +63,10 @@ def fetch_github(github, year: int, skip_fetch: bool = False) -> tuple:
         )
 
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logging.error(f"Error fetching data from GitHub: {e}")
+        return None, None
     else:
-        print("Fetched successfully!")
-
-    return data, data_new_repo
+        logging.info(f"data: {data}")
+        logging.info(f"data_new_repo: {data_new_repo}")
+        logging.info("Data fetched successfully")
+        return data, data_new_repo
