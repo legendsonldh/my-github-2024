@@ -34,6 +34,8 @@ app.config['CLIENT_SECRET'] = os.getenv("CLIENT_SECRET")
 
 setup_logging()
 
+user_contexts = {}
+
 
 @app.before_request
 def before_request():
@@ -102,7 +104,7 @@ def load():
     if not all([access_token, username, timezone, year]):
         return jsonify({"redirect_url": url_for("index", year=year)})
 
-    def long_running_task():
+    def long_running_task(username):
         github = Github(access_token, username, timezone)
         result_data, result_new_repo = fetch_github(github, year, skip_fetch=False)
 
@@ -111,18 +113,20 @@ def load():
             return
 
         context = get_context(year, result_data, result_new_repo)
-        session["context"] = context
+        user_contexts[username] = context
 
-    threading.Thread(target=long_running_task).start()
+    threading.Thread(target=long_running_task, args=(username,)).start()
     return jsonify({"redirect_url": url_for("stream")})
 
 
 @app.route("/stream")
 def stream():
+    username = session.get("username")
+
     def event_stream():
         while True:
             logging.info("TaskRunning")
-            if session.get("context"):
+            if user_contexts.get(username):
                 logging.info("TaskCompleted")
                 yield "data: TaskCompleted\n\n"
                 break
@@ -135,7 +139,7 @@ def stream():
 
 @app.route("/display")
 def display():
-    return render_template("template.html", context=session.get("context"))
+    return render_template("template.html", context=user_contexts.get(session.get("username")))
 
 
 @app.route("/static/<path:filename>")
