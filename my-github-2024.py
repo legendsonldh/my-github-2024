@@ -99,56 +99,28 @@ def load():
     session["timezone"] = timezone
     session["year"] = year
 
-    return jsonify({"redirect_url": url_for("display", year=year)})
+    if not all([access_token, username, timezone, year]):
+        return jsonify({"redirect_url": url_for("index", year=year)})
+
+    github = Github(access_token, username, timezone)
+    result_data, result_new_repo = fetch_github(github, year, skip_fetch=False)
+
+    if result_data is None or result_new_repo is None:
+        logging.info(f"data: {result_data}")
+        logging.info(f"data_new_repo: {result_new_repo}")
+        logging.error("Error fetching data from GitHub")
+        raise Exception("Error fetching data from GitHub")
+    
+    context = get_context(year, result_data, result_new_repo)
+
+    session["context"] = context
+
+    return jsonify({"redirect_url": url_for("display")})
 
 
 @app.route("/display")
 def display():
-    def generate():
-        with app.app_context():
-            access_token = session.get("access_token")
-            username = session.get("username")
-            timezone = session.get("timezone")
-            year = session.get("year")
-
-            if not all([access_token, username, timezone, year]):
-                yield redirect(url_for("index"))
-
-            yield "Processing, please wait...\n"
-
-            github = Github(access_token, username, timezone)
-            
-            import threading
-            result = {}
-            def fetch():
-                res, res_new_repo = fetch_github(github, year, skip_fetch=False)
-                result['res'] = res
-                result['res_new_repo'] = res_new_repo
-
-            thread = threading.Thread(target=fetch)
-            thread.start()
-
-            # Periodically yield to keep the connection alive
-            while thread.is_alive():
-                yield f"Fetching data... {datetime.now()}\n"
-                time.sleep(5)
-
-            thread.join()
-
-            result_data = result.get('res')
-            result_new_repo = result.get('res_new_repo')
-
-            if result_data is None or result_new_repo is None:
-                logging.info(f"data: {result_data}")
-                logging.info(f"data_new_repo: {result_new_repo}")
-                logging.error("Error fetching data from GitHub")
-                yield "Error fetching data from GitHub", 500
-
-            context = get_context(year, result_data, result_new_repo)
-
-            yield render_template("template.html", context=context)
-
-    return Response(stream_with_context(generate()), content_type="text/html")
+    return render_template("template.html", context=session.get("context"))
 
 
 @app.route("/static/<path:filename>")
