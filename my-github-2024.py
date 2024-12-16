@@ -35,6 +35,7 @@ app.config['CLIENT_SECRET'] = os.getenv("CLIENT_SECRET")
 
 setup_logging()
 
+requested_user = []
 user_contexts = {}
 
 
@@ -85,7 +86,14 @@ def dashboard():
     logging.info(f"access_token: {access_token}")
     user_response = requests.get("https://api.github.com/user", headers=headers)
     user_data = user_response.json()
-    return render_template("dashboard.html", user=user_data, access_token=access_token)
+
+    username = user_data.get("login")
+    if user_contexts.get(username) is not None:
+        return render_template("template.html", context=user_contexts.get(username))
+    elif username in requested_user:
+        return render_template("wait.html")
+    else:
+        return render_template("dashboard.html", user=user_data, access_token=access_token)
 
 
 @app.route("/load", methods=["POST"])
@@ -102,20 +110,31 @@ def load():
     session["timezone"] = timezone
     session["year"] = year
 
+    requested_user.append(username)
+
     if not all([access_token, username, timezone, year]):
         return jsonify({"redirect_url": url_for("index", year=year)})
 
-    github = Github(access_token, username, timezone)
-    result_data, result_new_repo = fetch_github(github, year, skip_fetch=False)
+    def fetch_data():
+        github = Github(access_token, username, timezone)
+        result_data, result_new_repo = fetch_github(github, year, skip_fetch=False)
 
-    if result_data is None or result_new_repo is None:
-        logging.error("Error fetching data from GitHub")
-        return
+        if result_data is None or result_new_repo is None:
+            logging.error("Error fetching data from GitHub")
+            return
 
-    context = get_context(year, result_data, result_new_repo)
-    user_contexts[username] = context
+        context = get_context(year, result_data, result_new_repo)
+        user_contexts[username] = context
 
-    return jsonify({"redirect_url": url_for("display")})
+    fetch_thread = threading.Thread(target=fetch_data)
+    fetch_thread.start()
+
+    return jsonify({"redirect_url": url_for("wait")})
+
+
+@app.route("/wait")
+def wait():
+    return render_template("wait.html")
 
 
 @app.route("/display")
