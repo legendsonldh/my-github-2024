@@ -113,7 +113,7 @@ def load():
         session["context"] = context
 
     threading.Thread(target=long_running_task).start()
-    return jsonify({"status": "Processing started"})
+    return jsonify({"redirect_url": url_for("stream")})
 
 
 @app.route("/stream")

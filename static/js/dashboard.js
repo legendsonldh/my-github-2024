@@ -44,19 +44,14 @@ document.getElementById('inputForm').addEventListener('submit', function (event)
             year: year
         }),
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'Processing started') {
-                var eventSource = new EventSource('/stream');
-                eventSource.onmessage = function (e) {
-                    if (e.data === 'TaskCompleted') {
-                        eventSource.close();
-                        window.location.href = "/display";
-                    }
-                };
-            } else if (data.redirect_url) {
-                window.location.href = data.redirect_url;
-            }
+        .then(response => {
+            var eventSource = new EventSource('/stream');
+            eventSource.onmessage = function (e) {
+                if (e.data === 'TaskCompleted') {
+                    eventSource.close();
+                    window.location.href = "/display";
+                }
+            };
         })
         .catch(error => {
             console.error('Error:', error);
