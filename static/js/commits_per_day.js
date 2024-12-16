@@ -13,8 +13,9 @@ const rows = 7
 const columns = Math.ceil((daysInYear + firstDay) / rows)
 
 // 计算 COMMITS_PER_DAY 的最大值
-const maxCommits = Math.max(...COMMITS_PER_DAY)
-const normalizedCommits = COMMITS_PER_DAY.map(commit => commit / maxCommits)
+const logCommits = COMMITS_PER_DAY.map(commit => Math.log(commit + 1))
+const maxLogCommits = Math.max(...logCommits)
+const normalizedCommits = logCommits.map(commit => commit / maxLogCommits)
 
 const commitMap = document.querySelector('#commit-map')
 const commitMapTable = commitMap.querySelector('table')

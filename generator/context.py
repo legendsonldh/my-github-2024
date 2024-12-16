@@ -14,10 +14,12 @@ def get_context(year, data, data_new_repo):
     COMMITS_PER_DAY = data["commits_daily_num"][year]
     COMMITS_DAYS_NUM = len([x for x in COMMITS_PER_DAY if x > 0])
     LONGEST_COMMIT_STREAK = max(
-        (len(list(g)) for k, g in groupby(COMMITS_PER_DAY) if k > 0), default=0
+        (len(list(g)) for k, g in groupby(COMMITS_PER_DAY, key=lambda x: x > 0) if k),
+        default=0,
     )
     LONGEST_COMMIT_BREAK = max(
-        (len(list(g)) for k, g in groupby(COMMITS_PER_DAY) if k == 0), default=0
+        (len(list(g)) for k, g in groupby(COMMITS_PER_DAY, key=lambda x: x == 0) if k),
+        default=0,
     )
     MAX_COMMITS_PER_DAY = max(COMMITS_PER_DAY)
 
