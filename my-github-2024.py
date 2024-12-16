@@ -13,14 +13,13 @@ from flask import (
     send_from_directory,
     jsonify,
     Response,
-    stream_with_context,
 )
 import requests
 from dotenv import load_dotenv
 import os
 import logging
 import time
-from datetime import datetime
+import threading
 
 
 app = Flask(__name__)
@@ -102,20 +101,31 @@ def load():
     if not all([access_token, username, timezone, year]):
         return jsonify({"redirect_url": url_for("index", year=year)})
 
-    github = Github(access_token, username, timezone)
-    result_data, result_new_repo = fetch_github(github, year, skip_fetch=False)
+    def long_running_task():
+        github = Github(access_token, username, timezone)
+        result_data, result_new_repo = fetch_github(github, year, skip_fetch=False)
 
-    if result_data is None or result_new_repo is None:
-        logging.info(f"data: {result_data}")
-        logging.info(f"data_new_repo: {result_new_repo}")
-        logging.error("Error fetching data from GitHub")
-        raise Exception("Error fetching data from GitHub")
-    
-    context = get_context(year, result_data, result_new_repo)
+        if result_data is None or result_new_repo is None:
+            logging.error("Error fetching data from GitHub")
+            return
 
-    session["context"] = context
+        context = get_context(year, result_data, result_new_repo)
+        session["context"] = context
 
-    return jsonify({"redirect_url": url_for("display")})
+    threading.Thread(target=long_running_task).start()
+    return jsonify({"status": "Processing started"})
+
+
+@app.route("/stream")
+def stream():
+    def event_stream():
+        while True:
+            if session.get("context"):
+                yield "data: TaskCompleted\n\n"
+                break
+            time.sleep(1)
+
+    return Response(event_stream(), mimetype="text/event-stream")
 
 
 @app.route("/display")

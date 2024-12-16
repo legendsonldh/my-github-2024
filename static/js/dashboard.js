@@ -32,13 +32,6 @@ document.getElementById('inputForm').addEventListener('submit', function (event)
     // Change the loading text every 1.5 seconds
     setInterval(changeLoadingText, 1500);
 
-    // Create an AbortController to handle the timeout
-    const controller = new AbortController();
-    const signal = controller.signal;
-
-    // Set a very long timeout (e.g., 1 hour)
-    const timeoutId = setTimeout(() => controller.abort(), 3600000);
-
     fetch("/load", {
         method: 'POST',
         headers: {
@@ -50,22 +43,24 @@ document.getElementById('inputForm').addEventListener('submit', function (event)
             timezone: timezone,
             year: year
         }),
-        signal: signal
     })
         .then(response => response.json())
         .then(data => {
-            clearTimeout(timeoutId); // Clear the timeout if the request completes successfully
-            window.location.href = data.redirect_url;
+            if (data.status === 'Processing started') {
+                var eventSource = new EventSource('/stream');
+                eventSource.onmessage = function (e) {
+                    if (e.data === 'TaskCompleted') {
+                        eventSource.close();
+                        window.location.href = "/display";
+                    }
+                };
+            } else if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+            }
         })
         .catch(error => {
-            if (error.name === 'AbortError') {
-                console.error('Fetch aborted due to timeout');
-            } else {
-                console.error('Error:', error);
-            }
+            console.error('Error:', error);
             document.querySelector('.loader').style.display = 'none';
-            messages = [
-                "An error occurred while loading data, check your python console for more information",
-            ];
+            alert("An error occurred while loading data.");
         });
 });
