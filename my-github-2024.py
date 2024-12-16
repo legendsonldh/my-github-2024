@@ -19,6 +19,8 @@ import requests
 from dotenv import load_dotenv
 import os
 import logging
+import time
+from datetime import datetime
 
 
 app = Flask(__name__)
@@ -112,18 +114,37 @@ def display():
             if not all([access_token, username, timezone, year]):
                 yield redirect(url_for("index"))
 
-            yield "Processing, please wait..."
+            yield "Processing, please wait...\n"
 
             github = Github(access_token, username, timezone)
-            result, result_new_repo = fetch_github(github, year, skip_fetch=False)
+            
+            import threading
+            result = {}
+            def fetch():
+                res, res_new_repo = fetch_github(github, year, skip_fetch=False)
+                result['res'] = res
+                result['res_new_repo'] = res_new_repo
 
-            if result is None or result_new_repo is None:
-                logging.info(f"data: {result}")
+            thread = threading.Thread(target=fetch)
+            thread.start()
+
+            # Periodically yield to keep the connection alive
+            while thread.is_alive():
+                yield f"Fetching data... {datetime.now()}\n"
+                time.sleep(5)
+
+            thread.join()
+
+            result_data = result.get('res')
+            result_new_repo = result.get('res_new_repo')
+
+            if result_data is None or result_new_repo is None:
+                logging.info(f"data: {result_data}")
                 logging.info(f"data_new_repo: {result_new_repo}")
                 logging.error("Error fetching data from GitHub")
                 yield "Error fetching data from GitHub", 500
 
-            context = get_context(year, result, result_new_repo)
+            context = get_context(year, result_data, result_new_repo)
 
             yield render_template("template.html", context=context)
 
