@@ -4,9 +4,9 @@
 cd /var/www/my-github-2024 || { echo "Directory not found"; exit 1; }
 
 # Find and kill the existing process
-PID=$(pgrep -f my-github-2024.py)
+PID=$(ps -ef | grep my-github-2024.py | grep -v grep | awk '{print $2}')
 if [ -n "$PID" ]; then
-  kill "$PID" || { echo "Failed to kill process $PID"; exit 1; }
+    kill -9 $PID || { echo "Failed to kill existing process"; exit 1; }
 fi
 
 # Remove old log files
