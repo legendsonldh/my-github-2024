@@ -12,3 +12,7 @@ function changeLoadingText() {
 
 // Change the loading text every 6 seconds
 setInterval(changeLoadingText, 6000);
+
+setInterval(function () {
+  location.reload();
+}, 20000);

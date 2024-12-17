@@ -25,7 +25,7 @@ setup_logging()
 
 app = Flask(__name__)
 
-secret_key = os.urandom(24)
+secret_key = "my-github-2024"
 app.secret_key = secret_key
 
 load_dotenv()
@@ -49,6 +49,16 @@ class UserContext(db.Model):
 
 with app.app_context():
     db.create_all()
+    missing_users = (
+        db.session.query(RequestedUser)
+        .outerjoin(UserContext, RequestedUser.username == UserContext.username)
+        .filter(UserContext.username == None)
+        .all()
+    )
+    for user in missing_users:
+        logging.info(f"Missing user: {user.username}")
+        db.session.query(RequestedUser).filter_by(username=user.username).delete()
+    db.session.commit()
 
 
 @app.before_request
@@ -181,20 +191,6 @@ def static_files(filename):
     return send_from_directory("static", filename)
 
 
-def delete_missing_users():
-    with app.app_context():
-        missing_users = (
-            db.session.query(RequestedUser)
-            .outerjoin(UserContext, RequestedUser.username == UserContext.username)
-            .filter(UserContext.username == None)
-            .all()
-        )
-        for user in missing_users:
-            logging.info(f"Missing user: {user.username}")
-            db.session.query(RequestedUser).filter_by(username=user.username).delete()
-        db.session.commit()
-
 
 if __name__ == "__main__":
-    delete_missing_users()
     app.run(host="0.0.0.0", port=5000)
