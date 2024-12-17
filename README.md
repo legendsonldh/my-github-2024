@@ -41,9 +41,9 @@
 
 3. Replace `YOUR_URL` with your URL, `YOUR_CLIENT_ID` with your `Client ID`, and `YOUR_CLIENT_SECRET` with your `Client Secret` in the [`script/setup.sh`](script/setup.sh) script. Then run the script on the server.
 
-    > [!WARNING]
-    >
-    > This script may overwrite existing configuration files, please use with caution.
+> [!WARNING]
+>
+> This script may overwrite existing configuration files, please use with caution.
 
 4. Generate SSH keys locally and add them to the server:
 
@@ -57,7 +57,7 @@
 
     - `SERVER_IP`: Server IP
     - `SERVER_USERNAME`: Server username
-    - `SERVER_SSH_KEY`: Generated SSH key
+    - `SERVER_KEY`: Generated SSH key
 
 6. Run the `Deploy to Server` workflow of GitHub Actions to automatically deploy and run.
 
@@ -66,25 +66,17 @@
 1. Clone the repository:
 
     ```bash
-    mkdir /var/www
-    cd /var/www
     git clone https://github.com/WCY-dt/my-github-2024.git
     cd my-github-2024
     ```
 
 2. Create a Github OAuth App:
 
-    Visit [GitHub Developer Settings](https://developer.github.com/settings/applications/new) to create a new OAuth App. In the Homepage URL and Authorization callback URL, fill in `http://127.0.0.1:5000` and `http://127.0.0.1:5000/callback` respectively.
+    Visit [GitHub Developer Settings](https://developer.github.com/settings/applications/new) to create a new OAuth App. In it, fill in `Homepage URL` and `Authorization callback URL` with `http://127.0.0.1:5000` and `http://127.0.0.1:5000/callback` respectively.
 
     Get `Client ID` and `Client Secret`.
 
-3. Configure environment variables:
-
-    ```bash
-    nano .env
-    ```
-
-    `.env` file content is as follows:
+3. Configure the environment variable `.env` file in the project root directory. The content is as follows:
 
     ```env
     CLIENT_ID=your_client_id

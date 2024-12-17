@@ -9,6 +9,7 @@
     "default": true,
     "MD012": false, // Disable MD012 - Multiple consecutive blank lines
     "MD028": false, // Disable MD028 - Blank line inside block element
+    "MD029": false, // Disable MD029 - Ordered list item prefix
     "MD033": false, // Disable MD033 - Inline HTML
     "MD041": false, // Disable MD041 - First line in file should be a top level header
   }

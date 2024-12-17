@@ -41,9 +41,9 @@
 
 3. 将 [`script/setup.sh`](script/setup.sh) 脚本中的 `YOUR_URL` 替换为你的 URL、`YOUR_CLIENT_ID` 替换为你的 `Client ID`、`YOUR_CLIENT_SECRET` 替换为你的 `Client Secret`。然后在服务器中运行该脚本。
 
-    > [!WARNING]
-    >
-    > 该脚本可能会覆盖现有的配置文件，请谨慎使用。
+> [!WARNING]
+>
+> 该脚本可能会覆盖现有的配置文件，请谨慎使用。
 
 4. 在本地生成 SSH 密钥并添加到服务器：
 
@@ -57,7 +57,7 @@
 
     - `SERVER_IP`: 服务器 IP
     - `SERVER_USERNAME`: 服务器用户名
-    - `SERVER_SSH_KEY`: 生成的 SSH 密钥
+    - `SERVER_KEY`: 生成的 SSH 密钥
 
 6. 运行 GitHub Actions 的 `Deploy to Server` 工作流，即可自动部署并运行。
 
@@ -66,8 +66,6 @@
 1. 克隆仓库：
 
     ```bash
-    mkdir /var/www
-    cd /var/www
     git clone https://github.com/WCY-dt/my-github-2024.git
     cd my-github-2024
     ```
@@ -78,13 +76,7 @@
 
     获取 `Client ID` 和 `Client Secret`。
 
-3. 配置环境变量：
-
-    ```bash
-    nano .env
-    ```
-
-    `.env` 文件内容形如：
+3. 在项目根目录下配置环境变量 `.env` 文件内容形如：
 
     ```env
     CLIENT_ID=your_client_id
