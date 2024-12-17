@@ -1,7 +1,7 @@
 <div align="center">
   <img src="logo.png" alt="logo" />
 
-  生成你的 GitHub 年度数据统计图。
+  统计2024年你在GitHub上的活动.
 
   [English](README.md) | 简体中文
 

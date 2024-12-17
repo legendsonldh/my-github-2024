@@ -21,6 +21,7 @@ import threading
 from flask_sqlalchemy import SQLAlchemy
 import json
 
+setup_logging()
 
 app = Flask(__name__)
 
@@ -30,8 +31,6 @@ app.secret_key = secret_key
 load_dotenv()
 app.config['CLIENT_ID'] = os.getenv("CLIENT_ID")
 app.config['CLIENT_SECRET'] = os.getenv("CLIENT_SECRET")
-
-setup_logging()
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///my-github-2024.db"
 db = SQLAlchemy(app)
@@ -61,7 +60,7 @@ def before_request():
         return redirect(url_for("index"))
 
 
-@app.route("/")
+@app.route("/", methods=["GET"])
 def index():
     return render_template("login.html")
 
@@ -92,7 +91,7 @@ def callback():
     return redirect(url_for("dashboard"))
 
 
-@app.route("/dashboard")
+@app.route("/dashboard", methods=["GET"])
 def dashboard():
     access_token = session.get("access_token")
     headers = {"Authorization": f"bearer {access_token}"}
@@ -155,7 +154,7 @@ def load():
     return jsonify({"redirect_url": url_for("wait")})
 
 
-@app.route("/wait")
+@app.route("/wait", methods=["GET"])
 def wait():
     username = session.get("username")
     user_context = UserContext.query.filter_by(username=username).first()
@@ -167,7 +166,7 @@ def wait():
         return render_template("wait.html")
 
 
-@app.route("/display")
+@app.route("/display", methods=["GET"])
 def display():
     username = session.get("username")
     user_context = UserContext.query.filter_by(username=username).first()
@@ -179,7 +178,7 @@ def display():
         return render_template("wait.html")
 
 
-@app.route("/static/<path:filename>")
+@app.route("/static/<path:filename>", methods=["GET"])
 def static_files(filename):
     return send_from_directory("static", filename)
 

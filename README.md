@@ -1,7 +1,7 @@
 <div align="center">
   <img src="logo.png" alt="logo" />
 
-  Generate your GitHub yearly statistics chart.
+  Statistics of your activities on GitHub in 2024.
 
   [简体中文](README_zh-CN.md) | English
 
