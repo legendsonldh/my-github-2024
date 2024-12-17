@@ -21,5 +21,5 @@ source venv/bin/activate || { echo "Failed to activate virtual environment"; exi
 pip install -r requirements.txt || { echo "Failed to install dependencies"; exit 1; }
 
 # Start the application
-nohup python3 my-github-2024.py &
+nohup python3 my-github-2024.py > ./app.log 2>&1 &
 echo "Deployment completed successfully"
