@@ -103,9 +103,9 @@ def dashboard():
 
     user_context = UserContext.query.filter_by(username=username).first()
     if user_context:
-        return render_template("template.html", context=json.loads(user_context.context))
+        return redirect(url_for("display"))
     elif RequestedUser.query.filter_by(username=username).first():
-        return render_template("wait.html")
+        return redirect(url_for("wait"))
     else:
         return render_template(
             "dashboard.html", user=user_data, access_token=access_token
@@ -159,9 +159,7 @@ def wait():
     username = session.get("username")
     user_context = UserContext.query.filter_by(username=username).first()
     if user_context:
-        return render_template(
-            "template.html", context=json.loads(user_context.context)
-        )
+        return redirect(url_for("display"))
     else:
         return render_template("wait.html")
 
@@ -175,7 +173,7 @@ def display():
             "template.html", context=json.loads(user_context.context)
         )
     else:
-        return render_template("wait.html")
+        return redirect(url_for("wait"))
 
 
 @app.route("/static/<path:filename>", methods=["GET"])
@@ -183,5 +181,20 @@ def static_files(filename):
     return send_from_directory("static", filename)
 
 
+def delete_missing_users():
+    with app.app_context():
+        missing_users = (
+            db.session.query(RequestedUser)
+            .outerjoin(UserContext, RequestedUser.username == UserContext.username)
+            .filter(UserContext.username == None)
+            .all()
+        )
+        for user in missing_users:
+            logging.info(f"Missing user: {user.username}")
+            db.session.query(RequestedUser).filter_by(username=user.username).delete()
+        db.session.commit()
+
+
 if __name__ == "__main__":
+    delete_missing_users()
     app.run(host="0.0.0.0", port=5000)

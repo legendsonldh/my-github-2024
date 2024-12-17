@@ -32,13 +32,19 @@ def _parse_time(time, timezone):
 def _paginate(func: callable) -> callable:
     def wrapper(username, url, token, timezone, year):
         results = []
+
         while url:
             data, res, cont = func(username, url, token, timezone, year)
             if data:
                 results.extend(data)
+
+            logging.info(f"Total {len(results)} items fetched, continue: {cont}")
+
             if len(results) > 10000:
                 return results
+            
             links = res.headers.get("Link")
+
             if links and cont:
                 next_url = None
                 for link in links.split(","):
@@ -95,6 +101,8 @@ def get_github_info(username, token, timezone, year):
     response = _get_response(user_url, token)
     data = response.json()
 
+    year = int(year)
+
     created_time = (
         datetime.now() - datetime.strptime(data.get("created_at"), "%Y-%m-%dT%H:%M:%SZ")
     ).days
@@ -135,8 +143,6 @@ def get_github_info(username, token, timezone, year):
 def _get_user_issues(
     username, issues_url, token, timezone, year
 ):
-    do_continue = True
-
     response = _get_response(issues_url, token)
     if response.status_code == 409:
         return [], response
@@ -147,7 +153,8 @@ def _get_user_issues(
     for issue in issues:
         created_time = _parse_time(issue.get("created_at"), timezone)
         if datetime.fromisoformat(created_time).year < year:
-            do_continue = False
+            return issues_details, response, False
+        
         issues_details.append(
             {
                 "url": issue.get("html_url"),
@@ -158,15 +165,13 @@ def _get_user_issues(
             }
         )
 
-    return issues_details, response, do_continue
+    return issues_details, response, True
 
 
 @_paginate
 def _get_user_prs(
     username, prs_url, token, timezone, year
 ):
-    do_continue = True
-
     response = _get_response(prs_url, token)
     if response.status_code == 409:
         return [], response
@@ -177,7 +182,7 @@ def _get_user_prs(
     for pr in prs:
         created_time = _parse_time(pr.get("created_at"), timezone)
         if datetime.fromisoformat(created_time).year < year:
-            do_continue = False
+            return prs_details, response, False
 
         if pr.get("pull_request").get("merged_at"):
             merged = True
@@ -198,7 +203,7 @@ def _get_user_prs(
             }
         )
 
-    return prs_details, response, do_continue
+    return prs_details, response, True
 
 
 @_paginate
@@ -257,8 +262,6 @@ def _get_user_repo_languages(
 def _get_user_commits(
     username, commits_url, token, timezone, year
 ):
-    do_continue = True
-
     response = _get_response(commits_url, token)
     if response.status_code == 409:
         return [], response
@@ -280,7 +283,7 @@ def _get_user_commits(
                 commit.get("commit").get("committer").get("date"), timezone
             )
             if datetime.fromisoformat(commit_time).year < year:
-                do_continue = False
+                return commits_details, response, False
 
             commits_details.append(
                 {
@@ -289,4 +292,4 @@ def _get_user_commits(
                 }
             )
 
-    return commits_details, response, do_continue
+    return commits_details, response, True
