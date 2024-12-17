@@ -3,7 +3,8 @@
   "liveServer.settings.root": "/dist",
   "files.associations": {
     "my-github-2024": "nginx",
-    "*.service": "ini"
+    "*.service": "ini",
+    "*.html": "liquid"
   },
   "markdownlint.config": {
     "default": true,
@@ -12,5 +13,21 @@
     "MD029": false, // Disable MD029 - Ordered list item prefix
     "MD033": false, // Disable MD033 - Inline HTML
     "MD041": false, // Disable MD041 - First line in file should be a top level header
-  }
+  },
+  "[javascript]": {
+    "editor.tabSize": 2
+  },
+  "[css]": {
+    "editor.tabSize": 2
+  },
+  "[html]": {
+    "editor.tabSize": 2
+  },
+  "[json]": {
+    "editor.tabSize": 2
+  },
+  "[liquid]": {
+    "editor.tabSize": 2,
+    "editor.formatOnSave": false
+  },
 }

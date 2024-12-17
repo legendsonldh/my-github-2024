@@ -5,45 +5,45 @@ COMMITS_PER_WEEKDAY.push(COMMITS_PER_WEEKDAY[0]);
 const COMMITS_PER_MONTH = eval(document.querySelector('#data-commits-per-month').innerHTML);
 
 function get_chart_config(label, labels, data) {
-    return {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: label,
-                data: data,
-                borderWidth: 3,
-                fill: true,
-                borderColor: '#49a1ff',
-                backgroundColor: '#49a1ff20',
-                pointBackgroundColor: '#49a1ff',
-                pointRadius: 3,
-                pointBorderWidth: 0,
-                tension: 0.6,
-                spanGaps: true
-            }]
+  return {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: label,
+        data: data,
+        borderWidth: 3,
+        fill: true,
+        borderColor: '#49a1ff',
+        backgroundColor: '#49a1ff20',
+        pointBackgroundColor: '#49a1ff',
+        pointRadius: 3,
+        pointBorderWidth: 0,
+        tension: 0.6,
+        spanGaps: true
+      }]
+    },
+    options: {
+      responsive: false,
+      scales: {
+        x: {
+          display: false
         },
-        options: {
-            responsive: false,
-            scales: {
-                x: {
-                    display: false
-                },
-                y: {
-                    display: false,
-                    beginAtZero: true
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                title: {
-                    display: false
-                }
-            }
+        y: {
+          display: false,
+          beginAtZero: true
         }
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        title: {
+          display: false
+        }
+      }
     }
+  }
 }
 
 const ctx1 = document.getElementById('commits-per-hour');
