@@ -19,9 +19,9 @@
 
 > [!WARNING]
 >
-> This tool involves a large number of network requests, and the server may be restricted by GitHub, resulting in failure to use it normally. If the server is down, please refer to the [Run locally](#run-locally) section to run locally.
+> This tool involves a large number of network requests, and the server may be restricted by GitHub, resulting in failure to visit it. If the server is down, please refer to the [Run locally](#run-locally) section.
 >
-> 本工具涉及到海量网络请求，服务器很可能会被 GitHub 限制，导致无法正常使用。如遇服务器宕机，请参考[本地运行](README_zh-CN.md#本地运行)部分在本地运行。
+> 本工具涉及到海量网络请求，服务器很可能会被 GitHub 限制，导致无法正常使用。如遇服务器宕机，请参考[本地运行](README_zh-CN.md#本地运行)部分。
 
 ## Example
 
@@ -35,7 +35,7 @@
 
 2. Create a Github OAuth App:
 
-    Visit [GitHub Developer Settings](https://developer.github.com/settings/applications/new) to create a new OAuth App. In it, `Homepage URL` and `Authorization callback URL` are filled in `http://YOUR_URL` and `http://YOUR_URL/callback` respectively.
+    Visit [GitHub Developer Settings](https://github.com/settings/developers) to create a new OAuth App. In it, `Homepage URL` and `Authorization callback URL` are filled in `http://YOUR_URL` and `http://YOUR_URL/callback` respectively.
 
     Get `Client ID` and `Client Secret`.
 
@@ -63,6 +63,10 @@
 
 ## Run locally
 
+> [!IMPORTANT]
+>
+> Due to the features of the `datetime` library, this project requires Python-3.12 or above.
+
 1. Clone the repository:
 
     ```bash
@@ -72,11 +76,11 @@
 
 2. Create a Github OAuth App:
 
-    Visit [GitHub Developer Settings](https://developer.github.com/settings/applications/new) to create a new OAuth App. In it, fill in `Homepage URL` and `Authorization callback URL` with `http://127.0.0.1:5000` and `http://127.0.0.1:5000/callback` respectively.
+    Visit [GitHub Developer Settings](https://github.com/settings/developers) to create a new OAuth App. In it, fill in `Homepage URL` and `Authorization callback URL` with `http://127.0.0.1:5000` and `http://127.0.0.1:5000/callback` respectively.
 
     Get `Client ID` and `Client Secret`.
 
-3. Configure the environment variable `.env` file in the project root directory. The content is as follows:
+3. Configure the environment variable `.env` file in the root directory of the project. The content is as follows:
 
     ```env
     CLIENT_ID=your_client_id
@@ -89,10 +93,16 @@
     pip3 install -r requirements.txt
     ```
 
-5. Run:
+5. Run the project:
 
     ```bash
     python3 my-github-2024.py
     ```
 
-6. Visit `http://127.0.0.1:5000` to see the effect.
+6. Visit `http://127.0.0.1:5000` and complete!
+
+## Statistics
+
+> Thanks to [Ruanyifeng](https://github.com/ruanyf) for the recommendation!
+
+[![Stargazers over time](https://starchart.cc/WCY-dt/my-github-2024.svg?background=%23FFFFFF&axis=%23333333&line=%232da44e)](https://starchart.cc/WCY-dt/my-github-2024)

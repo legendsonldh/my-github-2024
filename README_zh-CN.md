@@ -19,9 +19,9 @@
 
 > [!WARNING]
 >
-> This tool involves a large number of network requests, and the server may be restricted by GitHub, resulting in failure to use it normally. If the server is down, please refer to the [Run locally](README.md#run-locally) section to run locally.
+> This tool involves a large number of network requests, and the server may be restricted by GitHub, resulting in failure to visit it. If the server is down, please refer to the [Run locally](README.md#run-locally) section.
 >
-> 本工具涉及到海量网络请求，服务器很可能会被 GitHub 限制，导致无法正常使用。如遇服务器宕机，请参考[本地运行](#本地运行)部分在本地运行。
+> 本工具涉及到海量网络请求，服务器很可能会被 GitHub 限制，导致无法正常使用。如遇服务器宕机，请参考[本地运行](#本地运行)部分。
 
 ## 示例
 
@@ -35,7 +35,7 @@
 
 2. 创建 Github OAuth App：
 
-    访问 [GitHub Developer Settings](https://developer.github.com/settings/applications/new) 创建一个新的 OAuth App。其中，`Homepage URL` 和 `Authorization callback URL` 分别填写 `http://YOUR_URL` 和 `http://YOUR_URL/callback`。
+    访问 [GitHub Developer Settings](https://github.com/settings/developers) 创建一个新的 OAuth App。其中，`Homepage URL` 和 `Authorization callback URL` 分别填写 `http://YOUR_URL` 和 `http://YOUR_URL/callback`。
 
     获取 `Client ID` 和 `Client Secret`。
 
@@ -63,6 +63,10 @@
 
 ## 本地运行
 
+> [!IMPORTANT]
+>
+> 受到 `datetime` 库特性影响，本项目需要 Python-3.12 及以上版本。
+
 1. 克隆仓库：
 
     ```bash
@@ -72,7 +76,7 @@
 
 2. 创建 Github OAuth App：
 
-    访问 [GitHub Developer Settings](https://developer.github.com/settings/applications/new) 创建一个新的 OAuth App。其中，`Homepage URL` 和 `Authorization callback URL` 分别填写 `http://127.0.0.1:5000` 和 `http://127.0.0.1:5000/callback`。
+    访问 [GitHub Developer Settings](https://github.com/settings/developers) 创建一个新的 OAuth App。其中，`Homepage URL` 和 `Authorization callback URL` 分别填写 `http://127.0.0.1:5000` 和 `http://127.0.0.1:5000/callback`。
 
     获取 `Client ID` 和 `Client Secret`。
 
@@ -96,3 +100,9 @@
     ```
 
 6. 访问 `http://127.0.0.1:5000` 即可查看效果。
+
+## 统计
+
+> 感谢[阮一峰老师](https://github.com/ruanyf)的推荐！
+
+[![Stargazers over time](https://starchart.cc/WCY-dt/my-github-2024.svg?background=%23FFFFFF&axis=%23333333&line=%232da44e)](https://starchart.cc/WCY-dt/my-github-2024)
