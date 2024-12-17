@@ -2,4 +2,5 @@ requests
 python-dotenv
 pytz
 Flask
+Flask-SQLAlchemy
 tenacity

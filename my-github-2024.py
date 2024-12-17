@@ -12,16 +12,14 @@ from flask import (
     render_template,
     send_from_directory,
     jsonify,
-    Response,
-    stream_with_context,
 )
 import requests
 from dotenv import load_dotenv
 import os
 import logging
-import time
 import threading
-import sys
+from flask_sqlalchemy import SQLAlchemy
+import json
 
 
 app = Flask(__name__)
@@ -35,8 +33,23 @@ app.config['CLIENT_SECRET'] = os.getenv("CLIENT_SECRET")
 
 setup_logging()
 
-requested_user = []
-user_contexts = {}
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///my-github-2024.db"
+db = SQLAlchemy(app)
+
+
+class RequestedUser(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+
+
+class UserContext(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    context = db.Column(db.Text, nullable=False)
+
+
+with app.app_context():
+    db.create_all()
 
 
 @app.before_request
@@ -88,12 +101,16 @@ def dashboard():
     user_data = user_response.json()
 
     username = user_data.get("login")
-    if user_contexts.get(username) is not None:
-        return render_template("template.html", context=user_contexts.get(username))
-    elif username in requested_user:
+
+    user_context = UserContext.query.filter_by(username=username).first()
+    if user_context:
+        return render_template("template.html", context=json.loads(user_context.context))
+    elif RequestedUser.query.filter_by(username=username).first():
         return render_template("wait.html")
     else:
-        return render_template("dashboard.html", user=user_data, access_token=access_token)
+        return render_template(
+            "dashboard.html", user=user_data, access_token=access_token
+        )
 
 
 @app.route("/load", methods=["POST"])
@@ -110,21 +127,27 @@ def load():
     session["timezone"] = timezone
     session["year"] = year
 
-    requested_user.append(username)
+    requested_user = RequestedUser(username=username)
+    db.session.add(requested_user)
+    db.session.commit()
 
     if not all([access_token, username, timezone, year]):
         return jsonify({"redirect_url": url_for("index", year=year)})
 
     def fetch_data():
-        github = Github(access_token, username, timezone)
-        result_data, result_new_repo = fetch_github(github, year, skip_fetch=False)
+        with app.app_context():
+            github = Github(access_token, username, timezone)
+            result_data, result_new_repo = fetch_github(github, year, skip_fetch=False)
 
-        if result_data is None or result_new_repo is None:
-            logging.error("Error fetching data from GitHub")
-            return
+            if result_data is None or result_new_repo is None:
+                logging.error("Error fetching data from GitHub")
+                return
 
-        context = get_context(year, result_data, result_new_repo)
-        user_contexts[username] = context
+            context = get_context(year, result_data, result_new_repo)
+
+            user_context = UserContext(username=username, context=json.dumps(context))
+            db.session.add(user_context)
+            db.session.commit()
 
     fetch_thread = threading.Thread(target=fetch_data)
     fetch_thread.start()
@@ -134,15 +157,26 @@ def load():
 
 @app.route("/wait")
 def wait():
-    if user_contexts.get(session.get("username")) is not None:
-        return render_template("template.html", context=user_contexts.get(session.get("username")))
+    username = session.get("username")
+    user_context = UserContext.query.filter_by(username=username).first()
+    if user_context:
+        return render_template(
+            "template.html", context=json.loads(user_context.context)
+        )
     else:
         return render_template("wait.html")
 
 
 @app.route("/display")
 def display():
-    return render_template("template.html", context=user_contexts.get(session.get("username")))
+    username = session.get("username")
+    user_context = UserContext.query.filter_by(username=username).first()
+    if user_context:
+        return render_template(
+            "template.html", context=json.loads(user_context.context)
+        )
+    else:
+        return render_template("wait.html")
 
 
 @app.route("/static/<path:filename>")
