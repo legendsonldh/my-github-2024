@@ -1,6 +1,6 @@
 server {
     listen 80;
-    server_name YOUR_URL;
+    server_name 2024.ch3nyang.top;
 
     location / {
         return 301 https://$host$request_uri;
@@ -9,7 +9,7 @@ server {
 
 server {
     listen 443 ssl;
-    server_name YOUR_URL;
+    server_name 2024.ch3nyang.top;
 
     location / {
         proxy_pass http://127.0.0.1:5000;
@@ -19,8 +19,8 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    ssl_certificate /etc/letsencrypt/live/YOUR_URL/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/YOUR_URL/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/2024.ch3nyang.top/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/2024.ch3nyang.top/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 }

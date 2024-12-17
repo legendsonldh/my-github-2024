@@ -1,3 +1,15 @@
 {
-  "liveServer.settings.root": "/dist"
+  "json.schemaDownload.enable": false,
+  "liveServer.settings.root": "/dist",
+  "files.associations": {
+    "my-github-2024": "nginx",
+    "*.service": "ini"
+  },
+  "markdownlint.config": {
+    "default": true,
+    "MD012": false, // Disable MD012 - Multiple consecutive blank lines
+    "MD028": false, // Disable MD028 - Blank line inside block element
+    "MD033": false, // Disable MD033 - Inline HTML
+    "MD041": false, // Disable MD041 - First line in file should be a top level header
+  }
 }
