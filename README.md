@@ -5,6 +5,8 @@
 
   [简体中文](README_zh-CN.md) | English
 
+  [![Deploy state](https://github.com/WCY-dt/my-github-2024/actions/workflows/deploy.yml/badge.svg)](https://github.com/WCY-dt/my-github-2024/actions/workflows/deploy.yml)
+
   <strong style="font-size: 20px;">👉 Try it now: <a href="https://2024.ch3nyang.top">https://2024.ch3nyang.top</a></strong>
 </div>
 
@@ -27,91 +29,37 @@
 
 ## Self-deployment
 
-1. Make sure you have installed Python3.12 and other necessary dependencies:
+0. Assume your URL is `YOUR_URL`, server IP is `YOUR_IP`, and username is `YOUR_USERNAME`.
+
+1. [Fork](https://github.com/WCY-dt/my-github-2024/fork) this repository.
+
+2. Create a Github OAuth App:
+
+    Visit [GitHub Developer Settings](https://developer.github.com/settings/applications/new) to create a new OAuth App. In it, `Homepage URL` and `Authorization callback URL` are filled in `http://YOUR_URL` and `http://YOUR_URL/callback` respectively.
+
+    Get `Client ID` and `Client Secret`.
+
+3. Replace `YOUR_URL` with your URL, `YOUR_CLIENT_ID` with your `Client ID`, and `YOUR_CLIENT_SECRET` with your `Client Secret` in the [`script/setup.sh`](script/setup.sh) script. Then run the script on the server.
+
+    > [!WARNING]
+    >
+    > This script may overwrite existing configuration files, please use with caution.
+
+4. Generate SSH keys locally and add them to the server:
 
     ```bash
-    apt install python3.12 python3-pip python3-gunicorn python3-virtualenv nginx certbot python3-certbot-nginx -y
+    ssh-keygen -t rsa -b 4096 -C "action@github.com" -f ~/.ssh/id_rsa -N ""
+    cat ~/.ssh/id_rsa.pub | ssh YOUR_USERNAME@YOUR_IP 'cat >> ~/.ssh/authorized_keys'
+    cat ~/.ssh/id_rsa | clip
     ```
 
-2. Clone the repository:
+5. Add Secrets of GitHub Actions:
 
-    ```bash
-    mkdir /var/www
-    cd /var/www
-    git clone https://github.com/WCY-dt/my-github-2024.git
-    cd my-github-2024
-    ```
+    - `SERVER_IP`: Server IP
+    - `SERVER_USERNAME`: Server username
+    - `SERVER_SSH_KEY`: Generated SSH key
 
-3. Configure environment variables:
-
-    ```bash
-    nano .env
-    ```
-
-    `.env` The file content is as follows:
-
-    ```env
-    CLIENT_ID=your_client_id
-    CLIENT_SECRET=your_client_secret
-    ```
-
-4. Install dependencies:
-
-    ```bash
-    virtualenv venv
-    source venv/bin/activate
-    pip3 install -r requirements.txt
-    ```
-
-5. Run:
-
-    ```bash
-    nohup python3 my-github-2024.py &
-    ```
-
-6. Install and configure Gunicorn:
-
-    ```bash
-    pip3 install gunicorn
-    cp my-github-2024.service /etc/systemd/system
-    ```
-
-    Start the service:
-
-    ```bash
-    systemctl daemon-reload
-    systemctl start my-github-2024
-    systemctl enable my-github-2024
-    ```
-
-7. Configure SSL certificate:
-
-    ```bash
-    certbot --nginx -d YOUR_URL
-    certbot renew --dry-run
-    ```
-
-    > You need to change `YOUR_URL` to your domain name.
-
-8. Configure Nginx:
-
-    ```bash
-    cp my-github-2024 /etc/nginx/sites-available
-    rm /etc/nginx/sites-enabled/default
-    ```
-
-    > Before that, you need to modify `YOUR_URL` in the `my-github-2024` file to your domain name.
-
-    Enable the site:
-
-    ```bash
-    ln -s /etc/nginx/sites-available/my-github-2024 /etc/nginx/sites-enabled
-    nginx -t
-    systemctl restart nginx
-    nginx -s reload
-    ```
-
-9. Visit `https://YOUR_URL` to see the effect.
+6. Run the `Deploy to Server` workflow of GitHub Actions to automatically deploy and run.
 
 ## Run locally
 

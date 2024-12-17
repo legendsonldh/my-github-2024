@@ -5,6 +5,8 @@
 
   [English](README.md) | 简体中文
 
+  [![Deploy state](https://github.com/WCY-dt/my-github-2024/actions/workflows/deploy.yml/badge.svg)](https://github.com/WCY-dt/my-github-2024/actions/workflows/deploy.yml)
+
   <strong style="font-size: 20px;">👉 立即体验: <a href="https://2024.ch3nyang.top">https://2024.ch3nyang.top</a></strong>
 </div>
 
@@ -27,91 +29,37 @@
 
 ## 自行部署
 
-1. 确保您已安装 Python3.12 和其它必要的依赖：
+0. 假设你的 URL 为 `YOUR_URL`、服务器 IP 为 `YOUR_IP`、用户名为 `YOUR_USERNAME`。
+
+1. [Fork](https://github.com/WCY-dt/my-github-2024/fork) 本仓库。
+
+2. 创建 Github OAuth App：
+
+    访问 [GitHub Developer Settings](https://developer.github.com/settings/applications/new) 创建一个新的 OAuth App。其中，`Homepage URL` 和 `Authorization callback URL` 分别填写 `http://YOUR_URL` 和 `http://YOUR_URL/callback`。
+
+    获取 `Client ID` 和 `Client Secret`。
+
+3. 将 [`script/setup.sh`](script/setup.sh) 脚本中的 `YOUR_URL` 替换为你的 URL、`YOUR_CLIENT_ID` 替换为你的 `Client ID`、`YOUR_CLIENT_SECRET` 替换为你的 `Client Secret`。然后在服务器中运行该脚本。
+
+    > [!WARNING]
+    >
+    > 该脚本可能会覆盖现有的配置文件，请谨慎使用。
+
+4. 在本地生成 SSH 密钥并添加到服务器：
 
     ```bash
-    apt install python3.12 python3-pip python3-gunicorn python3-virtualenv nginx certbot python3-certbot-nginx -y
+    ssh-keygen -t rsa -b 4096 -C "action@github.com" -f ~/.ssh/id_rsa -N ""
+    cat ~/.ssh/id_rsa.pub | ssh YOUR_USERNAME@YOUR_IP 'cat >> ~/.ssh/authorized_keys'
+    cat ~/.ssh/id_rsa | clip
     ```
 
-2. 克隆仓库：
+5. 添加 GitHub Actions 的 Secrets：
 
-    ```bash
-    mkdir /var/www
-    cd /var/www
-    git clone https://github.com/WCY-dt/my-github-2024.git
-    cd my-github-2024
-    ```
+    - `SERVER_IP`: 服务器 IP
+    - `SERVER_USERNAME`: 服务器用户名
+    - `SERVER_SSH_KEY`: 生成的 SSH 密钥
 
-3. 配置环境变量：
-
-    ```bash
-    nano .env
-    ```
-
-    `.env` 文件内容形如：
-
-    ```env
-    CLIENT_ID=your_client_id
-    CLIENT_SECRET=your_client_secret
-    ```
-
-4. 安装依赖：
-
-    ```bash
-    virtualenv venv
-    source venv/bin/activate
-    pip3 install -r requirements.txt
-    ```
-
-5. 运行：
-
-    ```bash
-    nohup python3 my-github-2024.py &
-    ```
-
-6. 安装并配置 Gunicorn：
-
-    ```bash
-    pip3 install gunicorn
-    cp my-github-2024.service /etc/systemd/system
-    ```
-
-    启动服务：
-
-    ```bash
-    systemctl daemon-reload
-    systemctl start my-github-2024
-    systemctl enable my-github-2024
-    ```
-
-7. 配置 SSL 证书：
-
-    ```bash
-    certbot --nginx -d YOUR_URL
-    certbot renew --dry-run
-    ```
-
-    > 你需要修改 `YOUR_URL` 为你的域名。
-
-8. 配置 Nginx：
-
-    ```bash
-    cp my-github-2024 /etc/nginx/sites-available
-    rm /etc/nginx/sites-enabled/default
-    ```
-
-    > 在此之前，你需要修改 `my-github-2024` 文件中的 `YOUR_URL` 为你的域名。
-
-    启用站点：
-
-    ```bash
-    ln -s /etc/nginx/sites-available/my-github-2024 /etc/nginx/sites-enabled
-    nginx -t
-    systemctl restart nginx
-    nginx -s reload
-    ```
-
-9. 访问 `https://YOUR_URL` 即可查看效果。
+6. 运行 GitHub Actions 的 `Deploy to Server` 工作流，即可自动部署并运行。
 
 ## 本地运行
 
