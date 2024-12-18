@@ -5,7 +5,9 @@
 
   [简体中文](README_zh-CN.md) | English
 
-  [![Pylint](https://github.com/WCY-dt/my-github-2024/actions/workflows/pylint.yml/badge.svg)](https://github.com/WCY-dt/my-github-2024/actions/workflows/pylint.yml) [![Deploy state](https://github.com/WCY-dt/my-github-2024/actions/workflows/deploy.yml/badge.svg)](https://github.com/WCY-dt/my-github-2024/actions/workflows/deploy.yml) [![Server Status](https://img.shields.io/badge/dynamic/json?logo=linux&color=brightgreen&label=Server%20status&query=%24.status&cacheSeconds=600&url=https%3A%2F%2F2024.ch3nyang.top%2Fstatus)](https://2024.ch3nyang.top)
+  [![Pylint and Mypy](https://github.com/WCY-dt/my-github-2024/actions/workflows/pylint_and_mypy.yml/badge.svg)](https://github.com/WCY-dt/my-github-2024/actions/workflows/pylint_and_mypy.yml) [![Deploy state](https://github.com/WCY-dt/my-github-2024/actions/workflows/deploy.yml/badge.svg)](https://github.com/WCY-dt/my-github-2024/actions/workflows/deploy.yml) [![Server Status](https://img.shields.io/badge/dynamic/json?logo=linux&color=brightgreen&label=Server%20status&query=%24.status&cacheSeconds=600&url=https%3A%2F%2F2024.ch3nyang.top%2Fstatus)](https://2024.ch3nyang.top)
+
+  [![GitHub issues](https://img.shields.io/github/issues/WCY-dt/my-github-2024)](https://github.com/WCY-dt/my-github-2024/issues) [![GitHub pull requests](https://img.shields.io/github/issues-pr/WCY-dt/my-github-2024)](https://github.com/WCY-dt/my-github-2024/pulls) [![GitHub license](https://img.shields.io/github/license/WCY-dt/my-github-2024)](https://github.com/WCY-dt/my-github-2024/blob/main/LICENSE)
 
   <strong style="font-size: 24px;">👉 Try it now: <a href="https://2024.ch3nyang.top">https://2024.ch3nyang.top</a></strong>
 </div>

@@ -1,11 +1,13 @@
 <div align="center">
   <img src="logo.png" alt="logo" />
 
-  统计2024年你在GitHub上的活动.
+  统计 2024 年你在 GitHub 上的活动.
 
   [English](README.md) | 简体中文
 
   [![Pylint and Mypy](https://github.com/WCY-dt/my-github-2024/actions/workflows/pylint_and_mypy.yml/badge.svg)](https://github.com/WCY-dt/my-github-2024/actions/workflows/pylint_and_mypy.yml) [![Deploy state](https://github.com/WCY-dt/my-github-2024/actions/workflows/deploy.yml/badge.svg)](https://github.com/WCY-dt/my-github-2024/actions/workflows/deploy.yml) [![Server Status](https://img.shields.io/badge/dynamic/json?logo=linux&color=brightgreen&label=Server%20status&query=%24.status&cacheSeconds=600&url=https%3A%2F%2F2024.ch3nyang.top%2Fstatus)](https://2024.ch3nyang.top)
+
+  [![GitHub issues](https://img.shields.io/github/issues/WCY-dt/my-github-2024)](https://github.com/WCY-dt/my-github-2024/issues) [![GitHub pull requests](https://img.shields.io/github/issues-pr/WCY-dt/my-github-2024)](https://github.com/WCY-dt/my-github-2024/pulls) [![GitHub license](https://img.shields.io/github/license/WCY-dt/my-github-2024)](https://github.com/WCY-dt/my-github-2024/blob/main/LICENSE)
 
   <strong style="font-size: 24px;">👉 立即体验: <a href="https://2024.ch3nyang.top">https://2024.ch3nyang.top</a></strong>
 </div>
