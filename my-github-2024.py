@@ -68,6 +68,9 @@ def before_request():
         and "access_token" not in session
     ):
         return redirect(url_for("index"))
+    
+    if request.endpoint not in ("index", "login", "callback", "dashboard", "load", "wait", "display", "static"):
+        return redirect(url_for("index"))
 
 
 @app.route("/", methods=["GET"])
