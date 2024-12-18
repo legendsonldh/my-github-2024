@@ -1,115 +1,108 @@
+"""
+Module for generating context data for GitHub statistics.
+
+Functions:
+    get_context(year: int, data: dict, data_new_repo: dict) -> dict:
+        Generate context data for the given year from the provided data.
+"""
+
 from itertools import groupby
 
+def get_context(year: int, data: dict, data_new_repo: dict) -> dict:
+    """
+    Generate context data for the given year from the provided data.
 
-def get_context(year, data, data_new_repo):
-    YEAR = year
-    AVATAR = data["account_info"]["avatar"]
-    USERNAME = data["account_info"]["username"]
-    NAME = data["account_info"]["name"]
-    CREATED_TIME = (int(data["account_info"]["created_time"]) + 99) // 100 * 100
-    FOLLOWERS_NUM = data["account_info"]["followers_num"]
-    FOLLOWING_NUM = data["account_info"]["following_num"]
-    STARS_NUM = data["stargazers_num"]
+    Args:
+        year (int): The year for which to generate the context.
+        data (dict): The data containing GitHub statistics.
+        data_new_repo (dict): The data containing new repository statistics.
 
-    COMMITS_PER_DAY = data["commits_daily_num"][year]
-    COMMITS_DAYS_NUM = len([x for x in COMMITS_PER_DAY if x > 0])
-    LONGEST_COMMIT_STREAK = max(
-        (len(list(g)) for k, g in groupby(COMMITS_PER_DAY, key=lambda x: x > 0) if k),
+    Returns:
+        dict: A dictionary containing the generated context data.
+    """
+    avatar = data["account_info"]["avatar"]
+    username = data["account_info"]["username"]
+    name = data["account_info"]["name"]
+    created_time = (int(data["account_info"]["created_time"]) + 99) // 100 * 100
+    followers_num = data["account_info"]["followers_num"]
+    following_num = data["account_info"]["following_num"]
+    stars_num = data["stargazers_num"]
+
+    commits_per_day = data["commits_daily_num"][year]
+    commits_days_num = len([x for x in commits_per_day if x > 0])
+    longest_commit_streak = max(
+        (len(list(g)) for k, g in groupby(commits_per_day, key=lambda x: x > 0) if k),
         default=0,
     )
-    LONGEST_COMMIT_BREAK = max(
-        (len(list(g)) for k, g in groupby(COMMITS_PER_DAY, key=lambda x: x == 0) if k),
+    longest_commit_break = max(
+        (len(list(g)) for k, g in groupby(commits_per_day, key=lambda x: x == 0) if k),
         default=0,
     )
-    MAX_COMMITS_PER_DAY = max(COMMITS_PER_DAY)
+    max_commits_per_day = max(commits_per_day)
 
-    COMMITS_PER_MONTH = data["commits_monthly_num"]
-    MOST_ACTIVE_MONTH = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-    ][COMMITS_PER_MONTH.index(max(COMMITS_PER_MONTH))]
-    COMMITS_PER_WEEKDAY = data["commits_weekdaily_num"]
-    MOST_ACTIVE_WEEKDAY = [
-        "Mon",
-        "Tue",
-        "Wed",
-        "Thu",
-        "Fri",
-        "Sat",
-        "Sun",
-    ][COMMITS_PER_WEEKDAY.index(max(COMMITS_PER_WEEKDAY))]
-    COMMITS_PER_HOUR = data["commits_hourly_num"]
-    MOST_ACTIVE_HOUR = [f"{i}:00" for i in range(24)][
-        COMMITS_PER_HOUR.index(max(COMMITS_PER_HOUR))
+    commits_per_month = data["commits_monthly_num"]
+    most_active_month = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ][commits_per_month.index(max(commits_per_month))]
+    commits_per_weekday = data["commits_weekdaily_num"]
+    most_active_weekday = [
+        "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
+    ][commits_per_weekday.index(max(commits_per_weekday))]
+    commits_per_hour = data["commits_hourly_num"]
+    most_active_hour = [f"{i}:00" for i in range(24)][
+        commits_per_hour.index(max(commits_per_hour))
     ]
 
-    COMMITS_NUM = data["commits_num"]
-    ISSUES_NUM = data["issues_num"]
-    PRS_NUM = data["prs_num"]
+    commits_num = data["commits_num"]
+    issues_num = data["issues_num"]
+    prs_num = data["prs_num"]
 
-    REPOS_NUM = data["repos_num"]
-    TOP_3_MOST_COMMITTED_REPOS = sorted(
-        [
-            {"name": repo["name"], "num": repo["commits_num"]}
-            for repo in data["repos_details"]
-        ],
+    repos_num = data["repos_num"]
+    top_3_most_committed_repos = sorted(
+        [{"name": repo["name"], "num": repo["commits_num"]} for repo in data["repos_details"]],
         key=lambda x: x["num"],
         reverse=True,
     )[: min(3, len(data["repos_details"]))]
-    LANGUAGES_NUM = len(data_new_repo["languages_num"])
-    TOP_3_LANGUAGES_USED_IN_NEW_REPOS = list(
-        [{"name": k, "num": v} for k, v in data_new_repo["languages_num"].items()],
+    languages_num = len(data_new_repo["languages_num"])
+    top_3_languages_used_in_new_repos = list(
+        {"name": k, "num": v} for k, v in data_new_repo["languages_num"].items()
     )[: min(3, len(data_new_repo["languages_num"]))]
-    CONVENTIONAL_COMMITS_NUM = sum(
-        [v for k, v in data["commits_types_num"].items() if k != "others"]
+    conventional_commits_num = sum(
+        v for k, v in data["commits_types_num"].items() if k != "others"
     )
-    TOP_3_CONVENTIONAL_COMMIT_TYPES = sorted(
-        [
-            {"name": k, "num": v}
-            for k, v in data["commits_types_num"].items()
-            if k != "others"
-        ],
+    top_3_conventional_commit_types = sorted(
+        [{"name": k, "num": v} for k, v in data["commits_types_num"].items() if k != "others"],
         key=lambda x: x["num"],
         reverse=True,
     )[: min(3, len(data["commits_types_num"]) - 1)]
 
     return {
-        "AVATAR": AVATAR,
-        "YEAR": YEAR,
-        "USERNAME": USERNAME,
-        "NAME": NAME,
-        "CREATED_TIME": CREATED_TIME,
-        "FOLLOWERS_NUM": FOLLOWERS_NUM,
-        "FOLLOWING_NUM": FOLLOWING_NUM,
-        "STARS_NUM": STARS_NUM,
-        "COMMITS_PER_DAY": COMMITS_PER_DAY,
-        "COMMITS_DAYS_NUM": COMMITS_DAYS_NUM,
-        "LONGEST_COMMIT_STREAK": LONGEST_COMMIT_STREAK,
-        "LONGEST_COMMIT_BREAK": LONGEST_COMMIT_BREAK,
-        "MAX_COMMITS_PER_DAY": MAX_COMMITS_PER_DAY,
-        "COMMITS_PER_MONTH": COMMITS_PER_MONTH,
-        "MOST_ACTIVE_MONTH": MOST_ACTIVE_MONTH,
-        "COMMITS_PER_WEEKDAY": COMMITS_PER_WEEKDAY,
-        "MOST_ACTIVE_WEEKDAY": MOST_ACTIVE_WEEKDAY,
-        "COMMITS_PER_HOUR": COMMITS_PER_HOUR,
-        "MOST_ACTIVE_HOUR": MOST_ACTIVE_HOUR,
-        "COMMITS_NUM": COMMITS_NUM,
-        "ISSUES_NUM": ISSUES_NUM,
-        "PRS_NUM": PRS_NUM,
-        "REPOS_NUM": REPOS_NUM,
-        "TOP_3_MOST_COMMITTED_REPOS": TOP_3_MOST_COMMITTED_REPOS,
-        "LANGUAGES_NUM": LANGUAGES_NUM,
-        "TOP_3_LANGUAGES_USED_IN_NEW_REPOS": TOP_3_LANGUAGES_USED_IN_NEW_REPOS,
-        "CONVENTIONAL_COMMITS_NUM": CONVENTIONAL_COMMITS_NUM,
-        "TOP_3_CONVENTIONAL_COMMIT_TYPES": TOP_3_CONVENTIONAL_COMMIT_TYPES,
+        "avatar": avatar,
+        "year": year,
+        "username": username,
+        "name": name,
+        "created_time": created_time,
+        "followers_num": followers_num,
+        "following_num": following_num,
+        "stars_num": stars_num,
+        "commits_per_day": commits_per_day,
+        "commits_days_num": commits_days_num,
+        "longest_commit_streak": longest_commit_streak,
+        "longest_commit_break": longest_commit_break,
+        "max_commits_per_day": max_commits_per_day,
+        "commits_per_month": commits_per_month,
+        "most_active_month": most_active_month,
+        "commits_per_weekday": commits_per_weekday,
+        "most_active_weekday": most_active_weekday,
+        "commits_per_hour": commits_per_hour,
+        "most_active_hour": most_active_hour,
+        "commits_num": commits_num,
+        "issues_num": issues_num,
+        "prs_num": prs_num,
+        "repos_num": repos_num,
+        "top_3_most_committed_repos": top_3_most_committed_repos,
+        "languages_num": languages_num,
+        "top_3_languages_used_in_new_repos": top_3_languages_used_in_new_repos,
+        "conventional_commits_num": conventional_commits_num,
+        "top_3_conventional_commit_types": top_3_conventional_commit_types,
     }

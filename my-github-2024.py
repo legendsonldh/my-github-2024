@@ -1,76 +1,103 @@
-from util import Github
-from generator.fetch import fetch_github
-from generator.context import get_context
-from log.logging_config import setup_logging
+"""
+This module provides a Flask application for GitHub data fetching and display.
+"""
 
-from flask import (
-    Flask,
-    request,
-    redirect,
-    session,
-    url_for,
-    render_template,
-    send_from_directory,
-    jsonify,
-)
+import json
+import logging
+import os
+import threading
+
 import requests
 from dotenv import load_dotenv
-import os
-import logging
-import threading
+from flask import (
+    Flask,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    session,
+    url_for,
+)
 from flask_sqlalchemy import SQLAlchemy
-import json
+
+from generator.context import get_context
+from generator.fetch import fetch_github
+from log.logging_config import setup_logging
+from util import Github
 
 setup_logging()
 
 app = Flask(__name__)
 
-secret_key = "my-github-2024"
-app.secret_key = secret_key
 
-load_dotenv()
-app.config['CLIENT_ID'] = os.getenv("CLIENT_ID")
-app.config['CLIENT_SECRET'] = os.getenv("CLIENT_SECRET")
+def app_preparation():
+    """
+    Function to prepare the application.
+    """
+    app.secret_key = "my-github-2024"
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///my-github-2024.db"
+    load_dotenv()
+    app.config["CLIENT_ID"] = os.getenv("CLIENT_ID")
+    app.config["CLIENT_SECRET"] = os.getenv("CLIENT_SECRET")
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///my-github-2024.db"
+
+
+app_preparation()
+
+
 db = SQLAlchemy(app)
 
 
 class RequestedUser(db.Model):
+    """
+    Model for requested GitHub users.
+    """
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
 
 
 class UserContext(db.Model):
+    """
+    Model for storing user context data.
+    """
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     context = db.Column(db.Text, nullable=False)
 
 
-with app.app_context():
-    db.create_all()
-    missing_users = (
-        db.session.query(RequestedUser)
-        .outerjoin(UserContext, RequestedUser.username == UserContext.username)
-        .filter(UserContext.username == None)
-        .all()
-    )
-    for user in missing_users:
-        logging.info(f"Missing user: {user.username}")
-        db.session.query(RequestedUser).filter_by(username=user.username).delete()
-    db.session.commit()
+def db_preparation():
+    """
+    Function to prepare the database.
+    """
+    with app.app_context():
+        db.create_all()
+        missing_users = (
+            db.session.query(RequestedUser)
+            .outerjoin(UserContext, RequestedUser.username == UserContext.username)
+            .filter(UserContext.username is None)
+            .all()
+        )
+        for user in missing_users:
+            logging.info("Missing user: %s", user.username)
+            db.session.query(RequestedUser).filter_by(username=user.username).delete()
+        db.session.commit()
+
+
+db_preparation()
 
 
 @app.before_request
 def before_request():
+    """
+    Function to handle actions before each request.
+    """
     if (
-        request.endpoint not in (
-            "status",
-            "index",
-            "login",
-            "callback",
-            "static"
-        ) and "access_token" not in session
+        request.endpoint not in ("status", "index", "login", "callback", "static")
+        and "access_token" not in session
     ):
         return redirect(url_for("index"))
 
@@ -87,38 +114,50 @@ def before_request():
     ):
         return redirect(url_for("index"))
 
+    return None
+
 
 @app.route("/status", methods=["GET"])
 def status():
+    """
+    Endpoint to check the status of the application.
+    """
     return jsonify({"status": "ok"}), 200
 
 
 @app.route("/", methods=["GET"])
 def index():
+    """
+    Endpoint for the index page.
+    """
     if session.get("access_token"):
         return redirect(url_for("dashboard"))
-    else:
-        return render_template("login.html")
+    return render_template("login.html")
 
 
 @app.route("/login", methods=["GET"])
 def login():
+    """
+    Endpoint for the login page.
+    """
     if session.get("access_token"):
         return redirect(url_for("dashboard"))
-    else:
-        github_authorize_url = "https://github.com/login/oauth/authorize"
-        return redirect(
-            f"{github_authorize_url}?client_id={app.config['CLIENT_ID']}&scope=repo,read:org"
-        )
+    github_authorize_url = "https://github.com/login/oauth/authorize"
+    return redirect(
+        f"{github_authorize_url}?client_id={app.config['CLIENT_ID']}&scope=repo,read:org"
+    )
 
 
 @app.route("/callback", methods=["GET"])
 def callback():
+    """
+    Endpoint for the GitHub OAuth callback.
+    """
     code = request.args.get("code")
 
     if not code:
         return redirect(url_for("index"))
-    
+
     try:
         token_response = requests.post(
             "https://github.com/login/oauth/access_token",
@@ -128,26 +167,31 @@ def callback():
                 "client_secret": app.config["CLIENT_SECRET"],
                 "code": code,
             },
+            timeout=10,
         )
         token_json = token_response.json()
         access_token = token_json.get("access_token")
-    except Exception as e:
-        logging.error(f"Error getting access token: {e}")
+    except requests.exceptions.RequestException as e:
+        logging.error("Error getting access token: %s", e)
         return redirect(url_for("index"))
-    
+
     if not access_token:
         return redirect(url_for("index"))
-    else:
-        session["access_token"] = access_token
-        return redirect(url_for("dashboard"))
+    session["access_token"] = access_token
+    return redirect(url_for("dashboard"))
 
 
 @app.route("/dashboard", methods=["GET"])
 def dashboard():
+    """
+    Endpoint for the dashboard page.
+    """
     access_token = session.get("access_token")
     headers = {"Authorization": f"bearer {access_token}"}
-    logging.info(f"access_token: {access_token}")
-    user_response = requests.get("https://api.github.com/user", headers=headers)
+    logging.info("access_token: %s", access_token)
+    user_response = requests.get(
+        "https://api.github.com/user", headers=headers, timeout=10
+    )
     user_data = user_response.json()
 
     username = user_data.get("login")
@@ -155,16 +199,16 @@ def dashboard():
 
     if UserContext.query.filter_by(username=username).first():
         return redirect(url_for("display"))
-    elif RequestedUser.query.filter_by(username=username).first():
+    if RequestedUser.query.filter_by(username=username).first():
         return redirect(url_for("wait"))
-    else:
-        return render_template(
-            "dashboard.html", user=user_data, access_token=access_token
-        )
+    return render_template("dashboard.html", user=user_data, access_token=access_token)
 
 
 @app.route("/load", methods=["POST"])
 def load():
+    """
+    Endpoint to load user data.
+    """
     data = request.json
 
     access_token = data.get("access_token")
@@ -207,27 +251,34 @@ def load():
 
 @app.route("/wait", methods=["GET"])
 def wait():
+    """
+    Endpoint for the wait page.
+    """
     username = session.get("username")
     if UserContext.query.filter_by(username=username).first():
         return redirect(url_for("display"))
-    else:
-        return render_template("wait.html")
+    return render_template("wait.html")
 
 
 @app.route("/display", methods=["GET"])
 def display():
+    """
+    Endpoint for the display page.
+    """
     username = session.get("username")
     user_context = UserContext.query.filter_by(username=username).first()
     if user_context:
         return render_template(
             "template.html", context=json.loads(user_context.context)
         )
-    else:
-        return redirect(url_for("wait"))
+    return redirect(url_for("wait"))
 
 
 @app.route("/static/<path:filename>", methods=["GET"])
 def static_files(filename):
+    """
+    Endpoint to serve static files.
+    """
     return send_from_directory("static", filename)
 
 

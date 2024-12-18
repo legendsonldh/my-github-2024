@@ -1,8 +1,53 @@
+"""
+This module contains functions to count the number of commits, types of commits, repositories,
+languages, stargazers, forks, pull requests, merged pull requests, and issues in the data.
+
+Functions:
+    _get_commit_type(message: str) -> str:
+        Get the type of the commit message based on the conventional commit types.
+    commits_number(data: dict) -> dict:
+        Count the number of commits in the data.
+    commits_types_number(data: dict) -> dict:
+        Count the number of commits of each type in the data.
+    commits_monthly_number(data: dict) -> dict:
+        Count the number of commits in each month in the data.
+    commits_weekdaily_number(data: dict) -> dict:
+        Count the number of commits in each weekday in the data.
+    commits_daily_number(data: dict) -> dict:
+        Count the number of commits in each day in the data.
+    commits_hourly_number(data: dict) -> dict:
+        Count the number of commits in each hour in the data.
+    repos_number(data: dict) -> dict:
+        Count the number of repositories in the data.
+    repos_languages_number(data: dict) -> dict:
+        Count the number of repositories using each language in the data.
+    repos_stargazer_number(data: dict) -> dict:
+        Count the number of stargazers in the data.
+    repos_fork_number(data: dict) -> dict:
+        Count the number of forks in the data.
+    prs_number(data: dict) -> dict:
+        Count the number of pull requests in the data.
+    prs_merged_number(data: dict) -> dict:
+        Count the number of merged pull requests in the data.
+    issues_number(data: dict) -> dict:
+        Count the number of issues in the data.
+"""
+
 import re
 from datetime import datetime, timedelta
 
 
-def _get_commit_type(message):
+def _get_commit_type(message: str) -> str:
+    """
+    Get the type of the commit message based on the conventional commit types.
+
+    Args:
+        message (str): The commit message.
+
+    Returns:
+        str: The type of the commit message, including "feat", "fix", "docs", "style", "refactor",
+             "test", "chore", "perf", "build", "revert", "ci", and "others".
+    """
     commit_type = re.split(r"[:(!/\s]", message)[0].lower()
     conventional_types = {
         "feat": ["feature", "feat", "features", "feats"],
@@ -27,18 +72,36 @@ def _get_commit_type(message):
     return "others"
 
 
-def commits_number(data):
-    commits_number = 0
+def commits_number(data: dict) -> dict:
+    """
+    Count the number of commits in the data.
+
+    Args:
+        data (dict): The data containing the commits details.
+
+    Returns:
+        dict: The data containing the number of commits.
+    """
+    commits_num = 0
     for repo in data["repos_details"]:
         repo["commits_num"] = len(repo["commits_details"])
-        commits_number += len(repo["commits_details"])
+        commits_num += len(repo["commits_details"])
 
-    data["commits_num"] = commits_number
+    data["commits_num"] = commits_num
 
     return data
 
 
-def commits_types_number(data):
+def commits_types_number(data: dict) -> dict:
+    """
+    Count the number of commits of each type in the data.
+
+    Args:
+        data (dict): The data containing the commits details.
+
+    Returns:
+        dict: The data containing the number of commits of each type.
+    """
     commits_types = {}
     for repo in data["repos_details"]:
         repo_commits_types = {}
@@ -63,236 +126,235 @@ def commits_types_number(data):
     return data
 
 
-def commits_monthly_number(data):
-    commits_monthly = {}
-    for repo in data["repos_details"]:
-        repo_commits_monthly = {}
-        for commit in repo["commits_details"]:
-            commit_month = datetime.fromisoformat(commit["created_time"]).month
-
-            if commit_month in repo_commits_monthly:
-                repo_commits_monthly[commit_month] += 1
-            else:
-                repo_commits_monthly[commit_month] = 1
-            if commit_month in commits_monthly:
-                commits_monthly[commit_month] += 1
-            else:
-                commits_monthly[commit_month] = 1
-
-        repo_commits_monthly_list = []
-        for i in range(1, 13):
-            if i in repo_commits_monthly:
-                repo_commits_monthly_list.append(repo_commits_monthly[i])
-            else:
-                repo_commits_monthly_list.append(0)
-        repo["commits_monthly_num"] = repo_commits_monthly_list
-
-    for pr in data["prs_details"]:
-        pr_month = datetime.fromisoformat(pr["created_time"]).month
-
-        if pr_month in commits_monthly:
-            commits_monthly[pr_month] += 1
+def _count_monthly(items: list, key: str) -> dict:
+    monthly_count = {}
+    for item in items:
+        month = datetime.fromisoformat(item[key]).month
+        if month in monthly_count:
+            monthly_count[month] += 1
         else:
-            commits_monthly[pr_month] = 1
+            monthly_count[month] = 1
+    return monthly_count
 
-    for issue in data["issues_details"]:
-        issue_month = datetime.fromisoformat(issue["created_time"]).month
 
-        if issue_month in commits_monthly:
-            commits_monthly[issue_month] += 1
-        else:
-            commits_monthly[issue_month] = 1
-
-    commits_monthly_list = []
+def _fill_monthly_list(monthly_count: dict) -> list:
+    monthly_list = []
     for i in range(1, 13):
-        if i in commits_monthly:
-            commits_monthly_list.append(commits_monthly[i])
+        if i in monthly_count:
+            monthly_list.append(monthly_count[i])
         else:
-            commits_monthly_list.append(0)
-    data["commits_monthly_num"] = commits_monthly_list
+            monthly_list.append(0)
+    return monthly_list
+
+
+def commits_monthly_number(data: dict) -> dict:
+    """
+    Count the number of commits in each month in the data.
+
+    Args:
+        data (dict): The data containing the commits details.
+
+    Returns:
+        dict: The data containing the number of commits in each month.
+    """
+    commits_monthly = _count_monthly(data["repos_details"], "created_time")
+
+    for repo in data["repos_details"]:
+        repo_commits_monthly = _count_monthly(repo["commits_details"], "created_time")
+        repo["commits_monthly_num"] = _fill_monthly_list(repo_commits_monthly)
+
+    commits_monthly.update(_count_monthly(data["prs_details"], "created_time"))
+    commits_monthly.update(_count_monthly(data["issues_details"], "created_time"))
+
+    data["commits_monthly_num"] = _fill_monthly_list(commits_monthly)
 
     return data
 
 
-def commits_weekdaily_number(data):
-    commits_weekly = {}
-    for repo in data["repos_details"]:
-        repo_commits_weekly = {}
-        for commit in repo["commits_details"]:
-            commit_weekday = datetime.fromisoformat(commit["created_time"]).weekday()
-
-            if commit_weekday in repo_commits_weekly:
-                repo_commits_weekly[commit_weekday] += 1
-            else:
-                repo_commits_weekly[commit_weekday] = 1
-            if commit_weekday in commits_weekly:
-                commits_weekly[commit_weekday] += 1
-            else:
-                commits_weekly[commit_weekday] = 1
-
-        repo_commits_weekly_list = []
-        for i in range(7):
-            if i in repo_commits_weekly:
-                repo_commits_weekly_list.append(repo_commits_weekly[i])
-            else:
-                repo_commits_weekly_list.append(0)
-        repo["commits_weekdaily_num"] = repo_commits_weekly_list
-
-    for pr in data["prs_details"]:
-        pr_weekday = datetime.fromisoformat(pr["created_time"]).weekday()
-
-        if pr_weekday in commits_weekly:
-            commits_weekly[pr_weekday] += 1
+def _count_weekly(items: list, key: str) -> dict:
+    weekly_count = {}
+    for item in items:
+        weekday = datetime.fromisoformat(item[key]).weekday()
+        if weekday in weekly_count:
+            weekly_count[weekday] += 1
         else:
-            commits_weekly[pr_weekday] = 1
+            weekly_count[weekday] = 1
+    return weekly_count
 
-    for issue in data["issues_details"]:
-        issue_weekday = datetime.fromisoformat(issue["created_time"]).weekday()
 
-        if issue_weekday in commits_weekly:
-            commits_weekly[issue_weekday] += 1
-        else:
-            commits_weekly[issue_weekday] = 1
-
-    commits_weekly_list = []
+def _fill_weekly_list(weekly_count: dict) -> dict:
+    weekly_list = []
     for i in range(7):
-        if i in commits_weekly:
-            commits_weekly_list.append(commits_weekly[i])
+        if i in weekly_count:
+            weekly_list.append(weekly_count[i])
         else:
-            commits_weekly_list.append(0)
-    data["commits_weekdaily_num"] = commits_weekly_list
+            weekly_list.append(0)
+    return weekly_list
+
+
+def commits_weekdaily_number(data: dict) -> dict:
+    """
+    Count the number of commits in each weekday in the data.
+
+    Args:
+        data (dict): The data containing the commits details.
+
+    Returns:
+        dict: The data containing the number of commits in each weekday.
+    """
+    commits_weekly = {}
+
+    for repo in data["repos_details"]:
+        repo_commits_weekly = _count_weekly(repo["commits_details"], "created_time")
+        repo["commits_weekdaily_num"] = _fill_weekly_list(repo_commits_weekly)
+        for weekday, count in repo_commits_weekly.items():
+            if weekday in commits_weekly:
+                commits_weekly[weekday] += count
+            else:
+                commits_weekly[weekday] = count
+
+    commits_weekly.update(_count_weekly(data["prs_details"], "created_time"))
+    commits_weekly.update(_count_weekly(data["issues_details"], "created_time"))
+
+    data["commits_weekdaily_num"] = _fill_weekly_list(commits_weekly)
 
     return data
 
 
-def commits_daily_number(data):
-    commits_daily = {}
-    for repo in data["repos_details"]:
-        repo_commits_daily = {}
-        for commit in repo["commits_details"]:
-            commit_date = (
-                datetime.fromisoformat(commit["created_time"]).date().isoformat()
-            )
-
-            if commit_date in repo_commits_daily:
-                repo_commits_daily[commit_date] += 1
-            else:
-                repo_commits_daily[commit_date] = 1
-            if commit_date in commits_daily:
-                commits_daily[commit_date] += 1
-            else:
-                commits_daily[commit_date] = 1
-
-        repo_commmits_daily_list = {}
-
-        for i in range(2000, datetime.now().year + 2):
-            days_in_year = 366 if i % 4 == 0 and i % 100 != 0 or i % 400 == 0 else 365
-            tmp = []
-            for j in range(0, days_in_year):
-                date = (datetime(i, 1, 1) + timedelta(days=j)).date().isoformat()
-                if date in repo_commits_daily:
-                    tmp.append(repo_commits_daily[date])
-                else:
-                    tmp.append(0)
-            if sum(tmp) != 0:
-                repo_commmits_daily_list[i] = tmp
-
-        repo["commits_daily_num"] = repo_commmits_daily_list
-
-    for pr in data["prs_details"]:
-        pr_date = datetime.fromisoformat(pr["created_time"]).date().isoformat()
-
-        if pr_date in commits_daily:
-            commits_daily[pr_date] += 1
+def _count_daily(items: list, key: str) -> dict:
+    daily_count = {}
+    for item in items:
+        date = datetime.fromisoformat(item[key]).date().isoformat()
+        if date in daily_count:
+            daily_count[date] += 1
         else:
-            commits_daily[pr_date] = 1
+            daily_count[date] = 1
+    return daily_count
 
-    for issue in data["issues_details"]:
-        issue_date = datetime.fromisoformat(issue["created_time"]).date().isoformat()
 
-        if issue_date in commits_daily:
-            commits_daily[issue_date] += 1
-        else:
-            commits_daily[issue_date] = 1
-
-    commits_daily_list = {}
-
-    for i in range(2000, datetime.now().year + 2):
-        days_in_year = 366 if i % 4 == 0 and i % 100 != 0 or i % 400 == 0 else 365
+def _fill_daily_list(daily_count: dict) -> dict:
+    daily_list = {}
+    for year in range(2000, datetime.now().year + 2):
+        days_in_year = (
+            366 if year % 4 == 0 and year % 100 != 0 or year % 400 == 0 else 365
+        )
         tmp = []
-        for j in range(0, days_in_year):
-            date = (datetime(i, 1, 1) + timedelta(days=j)).date().isoformat()
-            if date in commits_daily:
-                tmp.append(commits_daily[date])
+        for day in range(days_in_year):
+            date = (datetime(year, 1, 1) + timedelta(days=day)).date().isoformat()
+            if date in daily_count:
+                tmp.append(daily_count[date])
             else:
                 tmp.append(0)
         if sum(tmp) != 0:
-            commits_daily_list[i] = tmp
-
-    data["commits_daily_num"] = commits_daily_list
-
-    return data
+            daily_list[year] = tmp
+    return daily_list
 
 
-def commits_hourly_number(data):
-    commits_hourly = {}
+def commits_daily_number(data: dict) -> dict:
+    """
+    Count the number of commits in each day in the data.
+
+    Args:
+        data (dict): The data containing the commits details.
+
+    Returns:
+        dict: The data containing the number of commits in each day.
+    """
+    commits_daily = _count_daily(data["repos_details"], "created_time")
+
     for repo in data["repos_details"]:
-        repo_commits_hourly = {}
-        for commit in repo["commits_details"]:
-            commit_hour = datetime.fromisoformat(commit["created_time"]).hour
-
-            if commit_hour in repo_commits_hourly:
-                repo_commits_hourly[commit_hour] += 1
+        repo_commits_daily = _count_daily(repo["commits_details"], "created_time")
+        repo["commits_daily_num"] = _fill_daily_list(repo_commits_daily)
+        for date, count in repo_commits_daily.items():
+            if date in commits_daily:
+                commits_daily[date] += count
             else:
-                repo_commits_hourly[commit_hour] = 1
-            if commit_hour in commits_hourly:
-                commits_hourly[commit_hour] += 1
-            else:
-                commits_hourly[commit_hour] = 1
+                commits_daily[date] = count
 
-        repo_commits_hourly_list = []
-        for i in range(24):
-            if i in repo_commits_hourly:
-                repo_commits_hourly_list.append(repo_commits_hourly[i])
-            else:
-                repo_commits_hourly_list.append(0)
-        repo["commits_hourly_num"] = repo_commits_hourly_list
+    commits_daily.update(_count_daily(data["prs_details"], "created_time"))
+    commits_daily.update(_count_daily(data["issues_details"], "created_time"))
 
-    for pr in data["prs_details"]:
-        pr_hour = datetime.fromisoformat(pr["created_time"]).hour
+    data["commits_daily_num"] = _fill_daily_list(commits_daily)
 
-        if pr_hour in commits_hourly:
-            commits_hourly[pr_hour] += 1
+    return data
+
+
+def _count_hourly(items: list, key: str) -> dict:
+    hourly_count = {}
+    for item in items:
+        hour = datetime.fromisoformat(item[key]).hour
+        if hour in hourly_count:
+            hourly_count[hour] += 1
         else:
-            commits_hourly[pr_hour] = 1
+            hourly_count[hour] = 1
+    return hourly_count
 
-    for issue in data["issues_details"]:
-        issue_hour = datetime.fromisoformat(issue["created_time"]).hour
 
-        if issue_hour in commits_hourly:
-            commits_hourly[issue_hour] += 1
-        else:
-            commits_hourly[issue_hour] = 1
-
-    commits_hourly_list = []
+def _fill_hourly_list(hourly_count: dict) -> list:
+    hourly_list = []
     for i in range(24):
-        if i in commits_hourly:
-            commits_hourly_list.append(commits_hourly[i])
+        if i in hourly_count:
+            hourly_list.append(hourly_count[i])
         else:
-            commits_hourly_list.append(0)
-    data["commits_hourly_num"] = commits_hourly_list
+            hourly_list.append(0)
+    return hourly_list
+
+
+def commits_hourly_number(data: dict) -> dict:
+    """
+    Count the number of commits in each hour in the data.
+
+    Args:
+        data (dict): The data containing the commits details.
+
+    Returns:
+        dict: The data containing the number of commits in each hour.
+    """
+    commits_hourly = {}
+
+    for repo in data["repos_details"]:
+        repo_commits_hourly = _count_hourly(repo["commits_details"], "created_time")
+        repo["commits_hourly_num"] = _fill_hourly_list(repo_commits_hourly)
+        for hour, count in repo_commits_hourly.items():
+            if hour in commits_hourly:
+                commits_hourly[hour] += count
+            else:
+                commits_hourly[hour] = count
+
+    commits_hourly.update(_count_hourly(data["prs_details"], "created_time"))
+    commits_hourly.update(_count_hourly(data["issues_details"], "created_time"))
+
+    data["commits_hourly_num"] = _fill_hourly_list(commits_hourly)
 
     return data
 
 
-def repos_number(data):
-    repos_number = len(data["repos_details"])
-    data["repos_num"] = repos_number
+def repos_number(data: dict) -> dict:
+    """
+    Count the number of repositories in the data.
+
+    Args:
+        data (dict): The data containing the repositories details.
+
+    Returns:
+        dict: The data containing the number of repositories.
+    """
+    repos_num = len(data["repos_details"])
+    data["repos_num"] = repos_num
 
     return data
 
 
-def repos_languages_number(data):
+def repos_languages_number(data: dict) -> dict:
+    """
+    Count the number of repositories using each language in the data.
+
+    Args:
+        data (dict): The data containing the repositories details.
+
+    Returns:
+        dict: The data containing the number of repositories using each language.
+    """
     languages_num = {}
     repos_languages_count = {}
     for repo in data["repos_details"]:
@@ -321,7 +383,16 @@ def repos_languages_number(data):
     return data
 
 
-def repos_stargazer_number(data):
+def repos_stargazer_number(data: dict) -> dict:
+    """
+    Count the number of stargazers in the data.
+
+    Args:
+        data (dict): The data containing the repositories details.
+
+    Returns:
+        dict: The data containing the number of stargazers.
+    """
     stargazers_num = 0
     for repo in data["repos_details"]:
         stargazers_num += repo["stargazers_num"]
@@ -331,7 +402,16 @@ def repos_stargazer_number(data):
     return data
 
 
-def repos_fork_number(data):
+def repos_fork_number(data: dict) -> dict:
+    """
+    Count the number of forks in the data.
+
+    Args:
+        data (dict): The data containing the repositories details.
+
+    Returns:
+        dict: The data containing the number of forks.
+    """
     forks_num = 0
     for repo in data["repos_details"]:
         forks_num += repo["forks_num"]
@@ -341,22 +421,49 @@ def repos_fork_number(data):
     return data
 
 
-def prs_number(data):
-    prs_number = len(data["prs_details"])
-    data["prs_num"] = prs_number
+def prs_number(data: dict) -> dict:
+    """
+    Count the number of pull requests in the data.
+
+    Args:
+        data (dict): The data containing the pull requests details.
+
+    Returns:
+        dict: The data containing the number of pull requests.
+    """
+    prs_num = len(data["prs_details"])
+    data["prs_num"] = prs_num
 
     return data
 
 
-def prs_merged_number(data):
+def prs_merged_number(data: dict) -> dict:
+    """
+    Count the number of merged pull requests in the data.
+
+    Args:
+        data (dict): The data containing the pull requests details.
+
+    Returns:
+        dict: The data containing the number of merged pull requests.
+    """
     merged_prs_number = len(list(filter(lambda x: x["merged"], data["prs_details"])))
     data["prs_merged_num"] = merged_prs_number
 
     return data
 
 
-def issues_number(data):
-    issues_number = len(data["issues_details"])
-    data["issues_num"] = issues_number
+def issues_number(data: dict) -> dict:
+    """
+    Count the number of issues in the data.
+
+    Args:
+        data (dict): The data containing the issues details.
+
+    Returns:
+        dict: The data containing the number of issues.
+    """
+    issues_num = len(data["issues_details"])
+    data["issues_num"] = issues_num
 
     return data

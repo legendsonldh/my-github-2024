@@ -1,6 +1,5 @@
 {
   "json.schemaDownload.enable": false,
-  "liveServer.settings.root": "/dist",
   "files.associations": {
     "my-github-2024": "nginx",
     "*.service": "ini",
@@ -30,4 +29,5 @@
     "editor.tabSize": 2,
     "editor.formatOnSave": false
   },
+  "python.formatting.provider": "black"
 }

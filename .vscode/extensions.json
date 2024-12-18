@@ -6,5 +6,6 @@
     "ecmel.vscode-html-css",
     "william-voyek.vscode-nginx",
     "ms-vscode.vscode-typescript-next",
+    "ms-python.black-formatter",
   ]
 }

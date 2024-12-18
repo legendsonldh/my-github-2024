@@ -1,5 +1,14 @@
-from log.logging_config import setup_logging
+"""
+This module contains functions to fetch and process GitHub data.
+
+Functions:
+    fetch_github(github: object, year: int, skip_fetch: bool = False) -> tuple:
+        Fetches and processes GitHub data for a given year.
+"""
+
 import logging
+
+from log.logging_config import setup_logging
 
 setup_logging()
 
@@ -34,7 +43,18 @@ KEY_NEW_REPO = {
 }
 
 
-def fetch_github(github, year, skip_fetch = False):
+def fetch_github(github: object, year: int, skip_fetch: bool = False) -> tuple:
+    """
+    Fetches and processes GitHub data for a given year.
+
+    Args:
+        github (object): GitHub object.
+        year (int): Year to fetch data for.
+        skip_fetch (bool): Skip fetching data from GitHub.
+
+    Returns:
+        tuple: Processed data.
+    """
     origin = None
     data = None
     data_new_repo = None
@@ -62,11 +82,11 @@ def fetch_github(github, year, skip_fetch = False):
             .result
         )
 
-    except Exception as e:
-        logging.error(f"Error fetching data from GitHub: {e}")
+    except (ValueError, TypeError, KeyError) as e:
+        logging.error("Error fetching data from GitHub: %s", e)
         return None, None
-    else:
-        logging.info(f"data: {data}")
-        logging.info(f"data_new_repo: {data_new_repo}")
-        logging.info("Data fetched successfully")
-        return data, data_new_repo
+
+    logging.info("data: %s", data)
+    logging.info("data_new_repo: %s", data_new_repo)
+    logging.info("Data fetched successfully")
+    return data, data_new_repo

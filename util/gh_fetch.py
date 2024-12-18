@@ -1,36 +1,111 @@
-from log.logging_config import setup_logging
+"""
+This module fetches the Github user information.
 
-import requests
-from datetime import datetime
-import urllib.parse
-import pytz
+Functions:
+    get_github_info(username: str, token: str, timezone: pytz.timezone, year: int) -> dict:
+        Get the Github user information.
+
+    _get_response(url: str, token: str, per_page: int = 100, accept: str = 
+                  "application/vnd.github.v3+json", timeout: int = 10) -> requests.Response:
+        Get the response from the Github API.
+
+    _parse_time(time_str: str, timezone: pytz.timezone) -> str:
+        Parse the time string to the timezone.
+
+    _paginate(func: callable) -> callable:
+        Paginate the data from the Github API.
+
+    _get_user_issues(username: str, url: str, token: str, timezone: pytz.timezone, 
+                     year: int) -> list:
+        Get the user issues.
+
+    _get_user_prs(username: str, url: str, token: str, timezone: pytz.timezone, 
+                  year: int) -> list:
+        Get the user pull requests.
+
+    _get_user_repos(username: str, url: str, token: str, timezone: pytz.timezone, 
+                    year: int) -> list:
+        Get the user repositories.
+
+    _get_user_repo_languages(url: str, token: str) -> dict:
+        Get the user repository languages.
+
+    _get_user_commits(username: str, url: str, token: str, timezone: pytz.timezone, 
+                      year: int) -> list:
+        Get the user commits.
+"""
+
 import logging
-from tenacity import retry, stop_after_attempt, wait_exponential
 import time
+import urllib.parse
+from datetime import datetime
 
+import pytz
+import requests
+from tenacity import retry, stop_after_attempt, wait_exponential
+
+from log.logging_config import setup_logging
 
 setup_logging()
 
 
-def _parse_time(time, timezone):
+def _parse_time(time_str: str, timezone: pytz.timezone) -> str:
+    """
+    Parse the time string to the timezone.
+
+    Args:
+        time_str (str): The time string.
+        timezone (pytz.timezone): The timezone.
+
+    Returns:
+        str: The time string in the timezone.
+    """
     result = None
     try:
         result = (
-            datetime.strptime(time, "%Y-%m-%dT%H:%M:%SZ")
+            datetime.strptime(time_str, "%Y-%m-%dT%H:%M:%SZ")
             .replace(tzinfo=pytz.UTC)
             .astimezone(timezone)
             .isoformat()
         )
-    except Exception as e:
-        logging.error(f"Failed to parse time: {e}")
-        logging.error(f"Time: {time}")
+    except ValueError as e:
+        logging.error("Failed to parse time: %s", e)
+        logging.error("Time: %s", time_str)
         result = datetime(2000, 1, 1).isoformat()
-    finally:
-        return result
+    except pytz.UnknownTimeZoneError as e:
+        logging.error("Unknown timezone: %s", e)
+        result = datetime(2000, 1, 1).isoformat()
+
+    return result
 
 
 def _paginate(func: callable) -> callable:
-    def wrapper(username, url, token, timezone, year):
+    """
+    Paginate the data from the Github API.
+
+    Args:
+        func (callable): The function to paginate.
+
+    Returns:
+        callable: The wrapper function to paginate the data.
+    """
+
+    def wrapper(
+        username: str, url: str, token: str, timezone: pytz.timezone, year: int
+    ) -> list:
+        """
+        Wrapper function to paginate the data.
+
+        Args:
+            username (str): The Github username.
+            url (str): The Github API URL to fetch the data.
+            token (str): The Github access token.
+            timezone (pytz.timezone): The timezone.
+            year (int): The year to fetch the data.
+
+        Returns:
+            list: The paginated results.
+        """
         results = []
 
         while url:
@@ -38,11 +113,11 @@ def _paginate(func: callable) -> callable:
             if data:
                 results.extend(data)
 
-            logging.info(f"Total {len(results)} items fetched, continue: {cont}")
+            logging.info("Total %d items fetched, continue: %s", len(results), cont)
 
             if len(results) > 10000:
                 return results
-            
+
             links = res.headers.get("Link")
 
             if links and cont:
@@ -61,11 +136,25 @@ def _paginate(func: callable) -> callable:
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
 def _get_response(
-    url,
-    token,
-    per_page = 100,
-    accept = "application/vnd.github.v3+json",
-):
+    url: str,
+    token: str,
+    per_page: int = 100,
+    accept: str = "application/vnd.github.v3+json",
+    timeout: int = 10,  # Default timeout is 10 seconds
+) -> requests.Response:
+    """
+    Get the response from the Github API.
+
+    Args:
+        url (str): The Github API URL to fetch the data.
+        token (str): The Github access token.
+        per_page (int): The number of items per page.
+        accept (str): The accept header.
+        timeout (int): The timeout for the request in seconds.
+
+    Returns:
+        requests.Response: The response from the Github API.
+    """
     response = None
     try:
         headers = {
@@ -79,16 +168,18 @@ def _get_response(
         new_query_string = urllib.parse.urlencode(query_params, doseq=True)
         url = urllib.parse.urlunparse(parsed_url._replace(query=new_query_string))
 
-        logging.info(f"Fetching data from {url}...")
+        logging.info("Fetching data from %s", url)
 
-        response = requests.get(url, headers=headers)
+        response = requests.get(
+            url, headers=headers, timeout=timeout
+        )  # Adding the timeout argument
         if response.status_code == 409:  # Empty repository
             return response
 
         response.raise_for_status()
     except Exception as e:
-        logging.error(f"Failed to fetch data from {url}: {e}")
-        logging.error(f"Response: {response}")
+        logging.error("Failed to fetch data from %s: %s", url, e)
+        logging.error("Response: %s", response.text)
         raise e
     else:
         return response
@@ -96,7 +187,21 @@ def _get_response(
         time.sleep(0.3)
 
 
-def get_github_info(username, token, timezone, year):
+def get_github_info(
+    username: str, token: str, timezone: pytz.timezone, year: int
+) -> dict:
+    """
+    Get the Github user information.
+
+    Args:
+        username (str): The Github username.
+        token (str): The Github access token.
+        timezone (pytz.timezone): The timezone.
+        year (int): The year to fetch the data.
+
+    Returns:
+        dict: The Github user information.
+    """
     user_url = f"https://api.github.com/users/{username}"
     response = _get_response(user_url, token)
     data = response.json()
@@ -117,7 +222,7 @@ def get_github_info(username, token, timezone, year):
         username=username, url=prs_url, token=token, timezone=timezone, year=year
     )
 
-    repos_url = f"https://api.github.com/user/repos"
+    repos_url = "https://api.github.com/user/repos"
     repos_details = _get_user_repos(
         username=username, url=repos_url, token=token, timezone=timezone, year=year
     )
@@ -141,9 +246,25 @@ def get_github_info(username, token, timezone, year):
 
 @_paginate
 def _get_user_issues(
-    username, issues_url, token, timezone, year
-):
-    response = _get_response(issues_url, token)
+    username: str, url: str, token: str, timezone: pytz.timezone, year: int
+) -> list:
+    """
+    Get the user issues.
+
+    Args:
+        username (str): The Github username.
+        url (str): The Github API URL.
+        token (str): The Github access token.
+        timezone (pytz.timezone): The timezone.
+        year (int): The year to fetch the data.
+
+    Returns:
+        list: The user issues.
+    """
+
+    _ = username  # Avoid pylint error
+
+    response = _get_response(url, token)
     if response.status_code == 409:
         return [], response
     issues = response.json().get("items")
@@ -154,7 +275,7 @@ def _get_user_issues(
         created_time = _parse_time(issue.get("created_at"), timezone)
         if datetime.fromisoformat(created_time).year < year:
             return issues_details, response, False
-        
+
         issues_details.append(
             {
                 "url": issue.get("html_url"),
@@ -170,9 +291,24 @@ def _get_user_issues(
 
 @_paginate
 def _get_user_prs(
-    username, prs_url, token, timezone, year
-):
-    response = _get_response(prs_url, token)
+    username: str, url: str, token: str, timezone: pytz.timezone, year: int
+) -> list:
+    """
+    Get the user pull requests.
+
+    Args:
+        username (str): The Github username.
+        url (str): The Github API URL.
+        token (str): The Github access token.
+        timezone (pytz.timezone): The timezone.
+        year (int): The year to fetch the data.
+
+    Returns:
+        list: The user pull requests.
+    """
+    _ = username  # Avoid pylint error
+
+    response = _get_response(url, token)
     if response.status_code == 409:
         return [], response
     prs = response.json().get("items")
@@ -208,9 +344,22 @@ def _get_user_prs(
 
 @_paginate
 def _get_user_repos(
-    username, repos_url, token, timezone, year
-):
-    response = _get_response(repos_url, token)
+    username: str, url: str, token: str, timezone: pytz.timezone, year: int
+) -> list:
+    """
+    Get the user repositories.
+
+    Args:
+        username (str): The Github username.
+        url (str): The Github API URL.
+        token (str): The Github access token.
+        timezone (pytz.timezone): The timezone.
+        year (int): The year to fetch the data.
+
+    Returns:
+        list: The user repositories.
+    """
+    response = _get_response(url, token)
     if response.status_code == 409:
         return [], response
     repos = response.json()
@@ -220,13 +369,15 @@ def _get_user_repos(
     for repo in repos:
         try:
             language_url = repo.get("languages_url")
-            languages_details = _get_user_repo_languages(
-                language_url, token=token
-            )
+            languages_details = _get_user_repo_languages(language_url, token=token)
 
             commits_url = repo.get("commits_url").replace("{/sha}", "")
             commits_details = _get_user_commits(
-                username=username, url=commits_url, token=token, timezone=timezone, year=year
+                username=username,
+                url=commits_url,
+                token=token,
+                timezone=timezone,
+                year=year,
             )
 
             repos_details.append(
@@ -241,17 +392,28 @@ def _get_user_repos(
                     "commits_details": commits_details,
                 }
             )
-        except Exception as e:
-            logging.error(f"Failed to fetch repo: {e}")
-            pass
+        except requests.exceptions.RequestException as e:
+            logging.error("Request failed: %s", e)
+        except KeyError as e:
+            logging.error("Key error: %s", e)
+        except (TypeError, ValueError) as e:
+            logging.error("Type or Value error: %s", e)
 
     return repos_details, response, True
 
 
-def _get_user_repo_languages(
-    language_url, token
-):
-    response = _get_response(language_url, token)
+def _get_user_repo_languages(url: str, token: str) -> dict:
+    """
+    Get the user repository languages.
+
+    Args:
+        url (str): The Github API URL.
+        token (str): The Github access token.
+
+    Returns:
+        dict: The user repository languages.
+    """
+    response = _get_response(url, token)
     response.raise_for_status()
     languages_details = response.json()
 
@@ -260,9 +422,22 @@ def _get_user_repo_languages(
 
 @_paginate
 def _get_user_commits(
-    username, commits_url, token, timezone, year
-):
-    response = _get_response(commits_url, token)
+    username: str, url: str, token: str, timezone: pytz.timezone, year: int
+) -> list:
+    """
+    Get the user commits.
+
+    Args:
+        username (str): The Github username.
+        url (str): The Github API URL.
+        token (str): The Github access token.
+        timezone (pytz.timezone): The timezone.
+        year (int): The year to fetch the data.
+
+    Returns:
+        list: The user commits.
+    """
+    response = _get_response(url, token)
     if response.status_code == 409:
         return [], response
     response.raise_for_status()
@@ -274,7 +449,7 @@ def _get_user_commits(
         committer = None
         try:
             committer = commit.get("committer").get("login")
-        except:
+        except AttributeError:
             committer = commit.get("commit").get("committer").get("name")
         if committer == username:
             commit_message = commit.get("commit").get("message")
