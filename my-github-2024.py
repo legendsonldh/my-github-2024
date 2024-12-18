@@ -64,13 +64,33 @@ with app.app_context():
 @app.before_request
 def before_request():
     if (
-        request.endpoint not in ("index", "login", "callback", "static")
-        and "access_token" not in session
+        request.endpoint not in (
+            "status",
+            "index",
+            "login",
+            "callback",
+            "static"
+        ) and "access_token" not in session
     ):
         return redirect(url_for("index"))
-    
-    if request.endpoint not in ("index", "login", "callback", "dashboard", "load", "wait", "display", "static"):
+
+    if request.endpoint not in (
+        "status",
+        "index",
+        "login",
+        "callback",
+        "dashboard",
+        "load",
+        "wait",
+        "display",
+        "static",
+    ):
         return redirect(url_for("index"))
+
+
+@app.route("/status", methods=["GET"])
+def status():
+    return jsonify({"status": "ok"}), 200
 
 
 @app.route("/", methods=["GET"])
