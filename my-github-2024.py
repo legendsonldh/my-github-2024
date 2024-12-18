@@ -110,9 +110,9 @@ def dashboard():
     user_data = user_response.json()
 
     username = user_data.get("login")
+    session["username"] = username
 
-    user_context = UserContext.query.filter_by(username=username).first()
-    if user_context:
+    if UserContext.query.filter_by(username=username).first():
         return redirect(url_for("display"))
     elif RequestedUser.query.filter_by(username=username).first():
         return redirect(url_for("wait"))
@@ -167,8 +167,7 @@ def load():
 @app.route("/wait", methods=["GET"])
 def wait():
     username = session.get("username")
-    user_context = UserContext.query.filter_by(username=username).first()
-    if user_context:
+    if UserContext.query.filter_by(username=username).first():
         return redirect(url_for("display"))
     else:
         return render_template("wait.html")
@@ -189,7 +188,6 @@ def display():
 @app.route("/static/<path:filename>", methods=["GET"])
 def static_files(filename):
     return send_from_directory("static", filename)
-
 
 
 if __name__ == "__main__":
