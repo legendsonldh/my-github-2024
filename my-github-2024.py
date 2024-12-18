@@ -72,33 +72,51 @@ def before_request():
 
 @app.route("/", methods=["GET"])
 def index():
-    return render_template("login.html")
+    if session.get("access_token"):
+        return redirect(url_for("dashboard"))
+    else:
+        return render_template("login.html")
 
 
-@app.route("/login")
+@app.route("/login", methods=["GET"])
 def login():
-    github_authorize_url = "https://github.com/login/oauth/authorize"
-    return redirect(
-        f"{github_authorize_url}?client_id={app.config['CLIENT_ID']}&scope=repo,read:org"
-    )
+    if session.get("access_token"):
+        return redirect(url_for("dashboard"))
+    else:
+        github_authorize_url = "https://github.com/login/oauth/authorize"
+        return redirect(
+            f"{github_authorize_url}?client_id={app.config['CLIENT_ID']}&scope=repo,read:org"
+        )
 
 
-@app.route("/callback")
+@app.route("/callback", methods=["GET"])
 def callback():
     code = request.args.get("code")
-    token_response = requests.post(
-        "https://github.com/login/oauth/access_token",
-        headers={"Accept": "application/json"},
-        data={
-            "client_id": app.config["CLIENT_ID"],
-            "client_secret": app.config["CLIENT_SECRET"],
-            "code": code,
-        },
-    )
-    token_json = token_response.json()
-    access_token = token_json.get("access_token")
-    session["access_token"] = access_token
-    return redirect(url_for("dashboard"))
+
+    if not code:
+        return redirect(url_for("index"))
+    
+    try:
+        token_response = requests.post(
+            "https://github.com/login/oauth/access_token",
+            headers={"Accept": "application/json"},
+            data={
+                "client_id": app.config["CLIENT_ID"],
+                "client_secret": app.config["CLIENT_SECRET"],
+                "code": code,
+            },
+        )
+        token_json = token_response.json()
+        access_token = token_json.get("access_token")
+    except Exception as e:
+        logging.error(f"Error getting access token: {e}")
+        return redirect(url_for("index"))
+    
+    if not access_token:
+        return redirect(url_for("index"))
+    else:
+        session["access_token"] = access_token
+        return redirect(url_for("dashboard"))
 
 
 @app.route("/dashboard", methods=["GET"])
