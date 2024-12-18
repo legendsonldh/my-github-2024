@@ -10,6 +10,7 @@ import json
 import logging
 from datetime import timedelta
 from datetime import timezone as dt_timezone
+from typing import Any
 
 import pytz
 
@@ -27,7 +28,7 @@ class Github:
     Attributes:
         access_token (str): The Github access token.
         username (str): The Github username.
-        timezone (pytz.timezone): The timezone.
+        timezone (pytz.BaseTzInfo): The timezone.
         data (dict | list | None): The fetched data.
 
     Methods:
@@ -54,6 +55,8 @@ class Github:
         result: Get the result data.
     """
 
+    data: dict[str, Any] | None
+
     def __init__(
         self, access_token: str, username: str, timezone: str = "Asia/Shanghai"
     ) -> None:
@@ -67,10 +70,10 @@ class Github:
         """
         self.access_token: str = access_token
         self.username: str = username
-        self.timezone: pytz.timezone = self._parse_timezone(timezone)
+        self.timezone: pytz.BaseTzInfo = self._parse_timezone(timezone)
         self.data = None
 
-    def _parse_timezone(self, tz_str: str) -> pytz.timezone:
+    def _parse_timezone(self, tz_str: str) -> pytz.BaseTzInfo:
         """
         Parse the timezone string to a pytz timezone object.
 
@@ -78,7 +81,7 @@ class Github:
             tz_str (str): The timezone string.
 
         Returns:
-            pytz.timezone: The pytz timezone object.
+            pytz.BaseTzInfo: The pytz timezone object.
         """
         try:
             return pytz.timezone(tz_str)
@@ -86,7 +89,7 @@ class Github:
             if tz_str.startswith("+") or tz_str.startswith("-"):
                 hours_offset = int(tz_str)
                 timezone = dt_timezone(timedelta(hours=hours_offset))
-                return pytz.timezone(timezone)
+                return pytz.timezone(str(timezone))
 
             raise e
 
@@ -186,7 +189,8 @@ class Github:
         Returns:
             Github: The Github object with the filtered data.
         """
-        self.data = gh_filter.json_key(self.data, key)
+        if self.data is not None:
+            self.data = gh_filter.json_key(self.data, key)
         return self
 
     def count_all(self) -> "Github":
@@ -262,7 +266,7 @@ class Github:
             f.write(json.dumps(self.result, indent=4))
         return self
 
-    def _get_result_structure(self, data: dict | list | None) -> dict:
+    def _get_result_structure(self, data: dict | list | None) -> dict | list | str:
         """
         Get the result structure of the data.
 
@@ -270,7 +274,7 @@ class Github:
             data (dict | list): The data to get the result structure from.
 
         Returns:
-            dict: The result structure of the data.
+            dict | list | str: The result structure of the data.
         """
         if isinstance(data, list):
             return [self._get_result_structure(data[0])]
@@ -299,7 +303,7 @@ class Github:
         return self.data
 
     @result.setter
-    def result(self, value: dict | list | None) -> None:
+    def result(self, value: dict[str, Any] | None) -> None:
         """
         Set the result data.
 

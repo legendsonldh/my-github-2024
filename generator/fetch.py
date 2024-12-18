@@ -9,6 +9,7 @@ Functions:
 import logging
 
 from log.logging_config import setup_logging
+from util import Github
 
 setup_logging()
 
@@ -43,7 +44,7 @@ KEY_NEW_REPO = {
 }
 
 
-def fetch_github(github: object, year: int, skip_fetch: bool = False) -> tuple:
+def fetch_github(github: Github, year: int, skip_fetch: bool = False) -> tuple:
     """
     Fetches and processes GitHub data for a given year.
 

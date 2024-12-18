@@ -102,9 +102,9 @@ def commits_types_number(data: dict) -> dict:
     Returns:
         dict: The data containing the number of commits of each type.
     """
-    commits_types = {}
+    commits_types: dict[str, int] = {}
     for repo in data["repos_details"]:
-        repo_commits_types = {}
+        repo_commits_types: dict[str, int] = {}
         for commit in repo["commits_details"]:
             commit_type = _get_commit_type(commit["message"])
 
@@ -127,7 +127,7 @@ def commits_types_number(data: dict) -> dict:
 
 
 def _count_monthly(items: list, key: str) -> dict:
-    monthly_count = {}
+    monthly_count: dict[int, int] = {}
     for item in items:
         month = datetime.fromisoformat(item[key]).month
         if month in monthly_count:
@@ -172,7 +172,7 @@ def commits_monthly_number(data: dict) -> dict:
 
 
 def _count_weekly(items: list, key: str) -> dict:
-    weekly_count = {}
+    weekly_count: dict[int, int] = {}
     for item in items:
         weekday = datetime.fromisoformat(item[key]).weekday()
         if weekday in weekly_count:
@@ -182,7 +182,7 @@ def _count_weekly(items: list, key: str) -> dict:
     return weekly_count
 
 
-def _fill_weekly_list(weekly_count: dict) -> dict:
+def _fill_weekly_list(weekly_count: dict) -> list:
     weekly_list = []
     for i in range(7):
         if i in weekly_count:
@@ -202,7 +202,7 @@ def commits_weekdaily_number(data: dict) -> dict:
     Returns:
         dict: The data containing the number of commits in each weekday.
     """
-    commits_weekly = {}
+    commits_weekly: dict[int, int] = {}
 
     for repo in data["repos_details"]:
         repo_commits_weekly = _count_weekly(repo["commits_details"], "created_time")
@@ -222,7 +222,7 @@ def commits_weekdaily_number(data: dict) -> dict:
 
 
 def _count_daily(items: list, key: str) -> dict:
-    daily_count = {}
+    daily_count: dict[str, int] = {}
     for item in items:
         date = datetime.fromisoformat(item[key]).date().isoformat()
         if date in daily_count:
@@ -233,7 +233,7 @@ def _count_daily(items: list, key: str) -> dict:
 
 
 def _fill_daily_list(daily_count: dict) -> dict:
-    daily_list = {}
+    daily_list: dict[int, list[int]] = {}
     for year in range(2000, datetime.now().year + 2):
         days_in_year = (
             366 if year % 4 == 0 and year % 100 != 0 or year % 400 == 0 else 365
@@ -280,7 +280,7 @@ def commits_daily_number(data: dict) -> dict:
 
 
 def _count_hourly(items: list, key: str) -> dict:
-    hourly_count = {}
+    hourly_count: dict[int, int] = {}
     for item in items:
         hour = datetime.fromisoformat(item[key]).hour
         if hour in hourly_count:
@@ -310,7 +310,7 @@ def commits_hourly_number(data: dict) -> dict:
     Returns:
         dict: The data containing the number of commits in each hour.
     """
-    commits_hourly = {}
+    commits_hourly: dict[int, int] = {}
 
     for repo in data["repos_details"]:
         repo_commits_hourly = _count_hourly(repo["commits_details"], "created_time")
@@ -355,8 +355,8 @@ def repos_languages_number(data: dict) -> dict:
     Returns:
         dict: The data containing the number of repositories using each language.
     """
-    languages_num = {}
-    repos_languages_count = {}
+    languages_num: dict[str, int] = {}
+    repos_languages_count: dict[str, int] = {}
     for repo in data["repos_details"]:
         for key, value in repo["languages_num"].items():
             if key in languages_num:
