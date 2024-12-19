@@ -138,7 +138,9 @@ def get_context(username: str, token: str, year: int, time_zone: str) -> dict:
     # Avatar URL
     avatar = data["basic"]["avatar_url"]
     # Username
-    name = data["basic"]["name"]
+    name = username
+    if data["basic"]["name"]:
+        name = data["basic"]["name"]
     # Days since account creation
     created_time = (
         (

@@ -278,6 +278,8 @@ def get_github_info(username: str, token: str, year: int) -> dict:
     Returns:
         dict: The GitHub information.
     """
+
+    logging.info("Processing basic info: username=%s", username)
     basic_info = _get_basic(username, token)
     if not basic_info["id"]:
         raise ValueError("Failed to get user id")
@@ -288,6 +290,7 @@ def get_github_info(username: str, token: str, year: int) -> dict:
     repo_info = None
     while not repo_info:
         try:
+            logging.info("Processing repo: username=%s, interval=%d", username, interval)
             repo_info = _get_repo(username, user_id, token, year, interval)
         except Exception as e:
             logging.error(
@@ -299,6 +302,7 @@ def get_github_info(username: str, token: str, year: int) -> dict:
             if interval < 1:
                 raise ValueError("Failed to get repo info") from e
 
+    logging.info("Processing contribution: username=%s", username)
     contribution_info = _get_contribution(username, token, year)
 
     return {
