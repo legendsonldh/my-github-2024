@@ -116,14 +116,9 @@ def get_context(username: str, token: str, year: int, time_zone: str) -> dict:
         for _, detail in data["repo"].items()
         for commit in detail["commits"]
     ]
-    commit_time_num = list(
-        dict(
-            sorted(
-                {k: commit_time.count(k) for k in set(commit_time)}.items(),
-                key=lambda x: x[0],
-            )
-        ).values()
-    )
+    commit_time_num = [0] * 24
+    for hour in commit_time:
+        commit_time_num[hour] += 1
 
     new_repos = [
         detail

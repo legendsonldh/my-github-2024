@@ -284,36 +284,20 @@ def get_github_info(username: str, token: str, year: int) -> dict:
 
     user_id = basic_info["id"]
 
-    interval = 20
-    try:
-        repo_info = _get_repo(username, user_id, token, year, 20)
-    except ValueError as e:
-        logging.error(
-            "ValueError: Failed to get repo info: %s. Trying to decrease the interval.",
-            e,
-        )
-        interval = interval // 2
+    interval = 10
+    repo_info = None
+    while not repo_info:
+        try:
+            repo_info = _get_repo(username, user_id, token, year, interval)
+        except Exception as e:
+            logging.error(
+                "Unexpected error: Failed to get repo info: %s. Trying to decrease the interval.",
+                e,
+            )
+            interval = interval // 2
 
-        if interval < 1:
-            raise ValueError("Failed to get repo info") from e
-    except TypeError as e:
-        logging.error(
-            "TypeError: Failed to get repo info: %s. Trying to decrease the interval.",
-            e,
-        )
-        interval = interval // 2
-
-        if interval < 1:
-            raise ValueError("Failed to get repo info") from e
-    except Exception as e:
-        logging.error(
-            "Unexpected error: Failed to get repo info: %s. Trying to decrease the interval.",
-            e,
-        )
-        interval = interval // 2
-
-        if interval < 1:
-            raise ValueError("Failed to get repo info") from e
+            if interval < 1:
+                raise ValueError("Failed to get repo info") from e
 
     contribution_info = _get_contribution(username, token, year)
 

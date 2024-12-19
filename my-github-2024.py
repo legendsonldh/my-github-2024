@@ -220,13 +220,16 @@ def load():
 
     def fetch_data():
         with app.app_context():
-            context = get_context(username, access_token, year, timezone)
+            try:
+                context = get_context(username, access_token, year, timezone)
 
-            logging.info("Context of %s: %s", username, json.dumps(context))
+                logging.info("Context of %s: %s", username, json.dumps(context))
 
-            user_context = UserContext(username=username, context=json.dumps(context))
-            db.session.add(user_context)
-            db.session.commit()
+                user_context = UserContext(username=username, context=json.dumps(context))
+                db.session.add(user_context)
+                db.session.commit()
+            except Exception as e:
+                logging.error("Error fetching data: %s", e)
 
     fetch_thread = threading.Thread(target=fetch_data)
     fetch_thread.start()

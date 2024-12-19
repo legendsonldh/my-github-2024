@@ -47,7 +47,9 @@ function get_chart_config(label, labels, data) {
 }
 
 const ctx1 = document.getElementById('commits-per-hour');
-new Chart(ctx1, get_chart_config('Commits in Hour', ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '0'], COMMITS_PER_HOUR));
+new Chart(ctx1, get_chart_config('Commits in Hour', ['0:00', '1:00', '2:00', '3:00', '4:00', '5:00', '6:00',
+  '7:00', '8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:00',
+  '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00', '0:00'], COMMITS_PER_HOUR));
 
 const ctx2 = document.getElementById('commits-per-weekday');
 new Chart(ctx2, get_chart_config('Activities in Weekday', ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon'], COMMITS_PER_WEEKDAY));
