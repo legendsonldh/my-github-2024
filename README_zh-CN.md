@@ -18,6 +18,13 @@
 >
 > 本项目运行在一台性能较弱的 VPS 上。如遇服务器宕机，请参考[本地运行](#本地运行)部分。
 
+
+> [!TIP]
+>
+> If it keeps in waiting page, reasons can be that you have too many commits. You can close the webpage and come back later. The server will continue to process your data.
+>
+> 如果一直在转圈等待，可能是因为您的 commit 数量过多。您可以放心关闭网页，过会儿再来看，服务器会继续处理您的数据。
+
 ## 示例
 
 ![example](example.png)
