@@ -47,10 +47,10 @@ function get_chart_config(label, labels, data) {
 }
 
 const ctx1 = document.getElementById('commits-per-hour');
-new Chart(ctx1, get_chart_config('Commits Per Hour', ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '0'], COMMITS_PER_HOUR));
+new Chart(ctx1, get_chart_config('Commits in Hour', ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '0'], COMMITS_PER_HOUR));
 
 const ctx2 = document.getElementById('commits-per-weekday');
-new Chart(ctx2, get_chart_config('Commits Per Weekday', ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon'], COMMITS_PER_WEEKDAY));
+new Chart(ctx2, get_chart_config('Activities in Weekday', ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon'], COMMITS_PER_WEEKDAY));
 
 const ctx3 = document.getElementById('commits-per-month');
-new Chart(ctx3, get_chart_config('Commits Per Month', ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], COMMITS_PER_MONTH));
+new Chart(ctx3, get_chart_config('Activities in Month', ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], COMMITS_PER_MONTH));

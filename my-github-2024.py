@@ -9,22 +9,12 @@ import threading
 
 import requests
 from dotenv import load_dotenv
-from flask import (
-    Flask,
-    jsonify,
-    redirect,
-    render_template,
-    request,
-    send_from_directory,
-    session,
-    url_for,
-)
+from flask import (Flask, jsonify, redirect, render_template, request,
+                   send_from_directory, session, url_for)
 from flask_sqlalchemy import SQLAlchemy
 
-from generator.context import get_context
-from generator.fetch import fetch_github
 from log.logging_config import setup_logging
-from util import Github
+from util.context import get_context
 
 setup_logging()
 
@@ -35,7 +25,7 @@ def app_preparation():
     """
     Function to prepare the application.
     """
-    app.secret_key = "my-github-2024"
+    app.secret_key = os.urandom(24)
 
     load_dotenv()
     app.config["CLIENT_ID"] = os.getenv("CLIENT_ID")
@@ -225,19 +215,14 @@ def load():
     db.session.add(requested_user)
     db.session.commit()
 
-    if not all([access_token, username, timezone, year]):
+    if not all([username, access_token, year, timezone]):
         return jsonify({"redirect_url": url_for("index", year=year)})
 
     def fetch_data():
         with app.app_context():
-            github = Github(access_token, username, timezone)
-            result_data, result_new_repo = fetch_github(github, year, skip_fetch=False)
+            context = get_context(username, access_token, year, timezone)
 
-            if result_data is None or result_new_repo is None:
-                logging.error("Error fetching data from GitHub")
-                return
-
-            context = get_context(year, result_data, result_new_repo)
+            logging.info("Context of %s: %s", username, json.dumps(context))
 
             user_context = UserContext(username=username, context=json.dumps(context))
             db.session.add(user_context)
@@ -267,6 +252,9 @@ def display():
     """
     username = session.get("username")
     user_context = UserContext.query.filter_by(username=username).first()
+
+    logging.info("Display user context: %s", username)
+
     if user_context:
         return render_template(
             "template.html", context=json.loads(user_context.context)

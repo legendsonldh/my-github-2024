@@ -89,6 +89,32 @@ button svg {
   fill: currentcolor;
 }
 
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2.5rem;
+}
+
+.loading-bar {
+  width: 8rem;
+  height: 8rem;
+  border: 5px solid rgb(243, 244, 246);
+  border-top: 5px solid rgb(45, 164, 78);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 .loading-text {
   text-align: center;
   font-size: 1.25rem;

@@ -13,9 +13,9 @@ const rows = 7
 const columns = Math.ceil((daysInYear + firstDay) / rows)
 
 
-const logCommits = COMMITS_PER_DAY.map(commit => Math.log(commit + 1))
-const maxLogCommits = Math.max(...logCommits)
-const normalizedCommits = logCommits.map(commit => commit / maxLogCommits)
+const sqrtCommits = COMMITS_PER_DAY.map(commit => Math.sqrt(commit + 1) - 1)
+const maxSqrtCommits = Math.max(...sqrtCommits)
+const normalizedCommits = sqrtCommits.map(commit => commit / maxSqrtCommits)
 
 const commitMap = document.querySelector('#commit-map')
 const commitMapTable = commitMap.querySelector('table')

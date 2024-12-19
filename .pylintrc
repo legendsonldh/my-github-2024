@@ -117,7 +117,10 @@ disable=raw-checker-failed,
         use-implicit-booleaness-not-comparison-to-zero,
         invalid-name,
         too-few-public-methods,
-        too-many-locals
+        too-many-locals,
+        too-many-arguments,
+        too-many-positional-arguments,
+        broad-exception-caught
 enable=
 [METHOD_ARGS]
 timeout-methods=requests.api.delete,requests.api.get,requests.api.head,requests.api.options,requests.api.patch,requests.api.post,requests.api.put,requests.api.request

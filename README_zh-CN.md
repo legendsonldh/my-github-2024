@@ -12,56 +12,15 @@
   <strong style="font-size: 24px;">👉 立即体验: <a href="https://2024.ch3nyang.top">https://2024.ch3nyang.top</a></strong>
 </div>
 
-> [!NOTE]
->
-> Since this project counts every commits, it may take 1-10 minutes to generate. Please be patient.
->
-> 由于本项目统计了每一次提交的信息，因此可能需要 1-10 分钟的时间来生成。请耐心等待。
-
-
 > [!WARNING]
 >
-> This tool involves a large number of network requests, and the server may be restricted by GitHub, resulting in failure to visit it. If the server is down, please refer to the [Run locally](README.md#run-locally) section.
+> This project is running on a VPS with poor performance. If the server is down, please refer to the [Run locally](README.md#run-locally) section.
 >
-> 本工具涉及到海量网络请求，服务器很可能会被 GitHub 限制，导致无法正常使用。如遇服务器宕机，请参考[本地运行](#本地运行)部分。
+> 本项目运行在一台性能较弱的 VPS 上。如遇服务器宕机，请参考[本地运行](#本地运行)部分。
 
 ## 示例
 
 ![example](example.png)
-
-## 自行部署
-
-0. 假设你的 URL 为 `YOUR_URL`、服务器 IP 为 `YOUR_IP`、用户名为 `YOUR_USERNAME`。
-
-1. [Fork](https://github.com/WCY-dt/my-github-2024/fork) 本仓库。
-
-2. 创建 Github OAuth App：
-
-    访问 [GitHub Developer Settings](https://github.com/settings/developers) 创建一个新的 OAuth App。其中，`Homepage URL` 和 `Authorization callback URL` 分别填写 `http://YOUR_URL` 和 `http://YOUR_URL/callback`。
-
-    获取 `Client ID` 和 `Client Secret`。
-
-3. 将 [`script/setup.sh`](script/setup.sh) 脚本中的 `YOUR_URL` 替换为你的 URL、`YOUR_CLIENT_ID` 替换为你的 `Client ID`、`YOUR_CLIENT_SECRET` 替换为你的 `Client Secret`。然后在服务器中运行该脚本。
-
-> [!WARNING]
->
-> 该脚本可能会覆盖现有的配置文件，请谨慎使用。
-
-4. 在本地生成 SSH 密钥并添加到服务器：
-
-    ```bash
-    ssh-keygen -t rsa -b 4096 -C "action@github.com" -f ~/.ssh/id_rsa -N ""
-    cat ~/.ssh/id_rsa.pub | ssh YOUR_USERNAME@YOUR_IP 'cat >> ~/.ssh/authorized_keys'
-    cat ~/.ssh/id_rsa | clip
-    ```
-
-5. 添加 GitHub Actions 的 Secrets：
-
-    - `SERVER_IP`: 服务器 IP
-    - `SERVER_USERNAME`: 服务器用户名
-    - `SERVER_KEY`: 生成的 SSH 密钥
-
-6. 运行 GitHub Actions 的 `Deploy to Server` 工作流，即可自动部署并运行。
 
 ## 本地运行
 

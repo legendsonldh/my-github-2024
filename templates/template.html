@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>My GitHub {{ context.YEAR }} | Display</title>
+  <title>My GitHub {{ context.year }} | Display</title>
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <meta name="description" content="Statistics of your activities on GitHub in 2024.">
   <meta name="keywords" content="GitHub, statistics, 2024, activity, repositories, commits, issues, pull requests">
@@ -38,55 +38,55 @@
   </div>
   <main>
     <header>
-      <h1>My GitHub {{ context.YEAR }}</h1>
+      <h1>My GitHub {{ context.year }}</h1>
     </header>
     <section id="basic-info">
       <div class="social">
-        <img src="{{ context.AVATAR }}" alt="avatar">
+        <img src="{{ context.avatar }}" alt="avatar">
         <div class="name">
-          <h2>{{ context.NAME }}</h2>
-          <p>{{ context.USERNAME }}</p>
+          <h2>{{ context.name }}</h2>
+          <p>{{ context.username }}</p>
         </div>
       </div>
       <div class="info">
-        <p><span>~{{ context.CREATED_TIME }}</span><br>days on GitHub</p>
-        <p><span>{{ context.FOLLOWERS_NUM }}</span><br>followers</p>
-        <p><span>{{ context.FOLLOWING_NUM }}</span><br>following</p>
-        <p><span>{{ context.STARS_NUM }}</span><br>stargazers</p>
+        <p><span>~{{ context.created_time }}</span><br>days on GitHub</p>
+        <p><span>{{ context.followers_num }}</span><br>followers</p>
+        <p><span>{{ context.following_num }}</span><br>following</p>
+        <p><span>{{ context.stars_num }}</span><br>stargazers</p>
       </div>
     </section>
     <section id="commit-map">
       <table></table>
       <div>
         <p>
-          Active days<br><span>{{ context.COMMITS_DAYS_NUM }}</span>
+          Active days<br><span>{{ context.commits_days_num }}</span>
         </p>
         <p>
-          Longest streak<br><span>{{ context.LONGEST_COMMIT_STREAK }}</span>
+          Longest streak<br><span>{{ context.longest_commit_streak }}</span>
         </p>
         <p>
-          Longest break<br><span>{{ context.LONGEST_COMMIT_BREAK }}</span>
+          Longest break<br><span>{{ context.longest_commit_break }}</span>
         </p>
         <p>
-          Maximum activities<br><span>{{ context.MAX_COMMITS_PER_DAY }}</span>
+          Maximum activities<br><span>{{ context.max_commits_per_day }}</span>
         </p>
       </div>
     </section>
     <section id="trending">
       <h3>Commits in Hour</h3>
-      <h3>Commits in Weekday</h3>
-      <h3>Commits in Month</h3>
+      <h3>Activities in Weekday</h3>
+      <h3>Activities in Month</h3>
       <canvas id="commits-per-hour" width="250" height="160"></canvas>
       <canvas id="commits-per-weekday" width="250" height="160"></canvas>
       <canvas id="commits-per-month" width="250" height="160"></canvas>
       <div>
-        <p>Most energetic at <span>{{ context.MOST_ACTIVE_HOUR }}</span></p>
+        <p>Most energetic at <span>{{ context.most_active_hour }}</span></p>
       </div>
       <div>
-        <p>Coding peaks on <span>{{ context.MOST_ACTIVE_WEEKDAY }}</span></p>
+        <p>Coding peaks on <span>{{ context.most_active_weekday }}</span></p>
       </div>
       <div>
-        <p>Inspiration bursts in <span>{{ context.MOST_ACTIVE_MONTH }}</span></p>
+        <p>Inspiration bursts in <span>{{ context.most_active_month }}</span></p>
       </div>
     </section>
     <section id="commit-activity">
@@ -98,7 +98,7 @@
         </svg>
         <span>Commits</span>
       </div>
-      <p>{{ context.COMMITS_NUM }}</p>
+      <p>{{ context.commits_num }}</p>
       <div>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
           <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path>
@@ -106,7 +106,7 @@
         </svg>
         <span>Issues</span>
       </div>
-      <p>{{ context.ISSUES_NUM }}</p>
+      <p>{{ context.issues_num }}</p>
       <div>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
           <path
@@ -115,22 +115,22 @@
         </svg>
         <span>Pull Requests</span>
       </div>
-      <p>{{ context.PRS_NUM }}</p>
+      <p>{{ context.prs_num }}</p>
       </div>
     </section>
     <section id="preferences">
       <div class="brief">
-        <num>{{ context.REPOS_NUM }}</num>
+        <num>{{ context.repos_num }}</num>
         <span>repositories<br>commited</span>
       </div>
       <div class="detail" id="top-3-most-committed-repos"></div>
       <div class="brief">
-        <num>{{ context.LANGUAGES_NUM }}</num>
+        <num>{{ context.languages_num }}</num>
         <span>languages used<br>in new repositories</span>
       </div>
       <div class="detail" id="top-3-languages-used-in-new-repos"></div>
       <div class="brief">
-        <num>{{ context.CONVENTIONAL_COMMITS_NUM }}</num>
+        <num>{{ context.conventional_commits_num }}</num>
         <span>conventional<br>commits made</span>
       </div>
       <div class="detail" id="top-3-conventional-commit-types"></div>
@@ -146,14 +146,14 @@
   </main>
   <foot>
   <div hidden>
-    <div id="data-year">{{ context.YEAR }}</div>
-    <div id="data-commits-per-day">{{ context.COMMITS_PER_DAY }}</div>
-    <div id="data-commits-per-month">{{ context.COMMITS_PER_MONTH }}</div>
-    <div id="data-commits-per-weekday">{{ context.COMMITS_PER_WEEKDAY }}</div>
-    <div id="data-commits-per-hour">{{ context.COMMITS_PER_HOUR }}</div>
-    <div id="data-top-3-most-committed-repos">{{ context.TOP_3_MOST_COMMITTED_REPOS }}</div>
-    <div id="data-top-3-languages-used-in-new-repos">{{ context.TOP_3_LANGUAGES_USED_IN_NEW_REPOS }}</div>
-    <div id="data-top-3-conventional-commit-types">{{ context.TOP_3_CONVENTIONAL_COMMIT_TYPES }}</div>
+    <div id="data-year">{{ context.year }}</div>
+    <div id="data-commits-per-day">{{ context.commits_per_day }}</div>
+    <div id="data-commits-per-month">{{ context.commits_per_month }}</div>
+    <div id="data-commits-per-weekday">{{ context.commits_per_weekday }}</div>
+    <div id="data-commits-per-hour">{{ context.commits_per_hour }}</div>
+    <div id="data-top-3-most-committed-repos">{{ context.top_3_most_committed_repos }}</div>
+    <div id="data-top-3-languages-used-in-new-repos">{{ context.top_3_languages_used_in_new_repos }}</div>
+    <div id="data-top-3-conventional-commit-types">{{ context.top_3_conventional_commit_types }}</div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="/static/js/commits_per_day.js"></script>
