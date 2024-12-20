@@ -164,7 +164,7 @@ def _get_repo(
             
             nodes = history.get("nodes")
             if not nodes:
-                raise ValueError("`nodes` not in repo['defaultBranchRef']['target']['history']")
+                nodes = []
             
             commits = nodes
             
@@ -200,7 +200,8 @@ def _get_repo(
                         "defaultBranchRef"
                     ]["target"]["history"]
 
-                    commits.extend(commit_result["nodes"])
+                    if commit_result["nodes"]:
+                        commits.extend(commit_result["nodes"])
 
                     if not commit_result["pageInfo"]["hasNextPage"]:
                         break
