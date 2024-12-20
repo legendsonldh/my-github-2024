@@ -136,6 +136,9 @@ def _get_repo(
             raise ValueError("`repositories` not in result")
         elif "nodes" not in result["user"]["repositories"]:
             raise ValueError("`nodes` not in result")
+        
+        if not result["user"]["repositories"]["nodes"]:
+            break
 
         for repo in result["user"]["repositories"]["nodes"]:
             if "name" not in repo:
@@ -196,13 +199,23 @@ def _get_repo(
 
                     commit_after = commit_result["pageInfo"]["endCursor"]
 
+            languages = []
+            try:
+                if repo["languages"]["nodes"]:
+                    languages = [lang["name"] for lang in repo["languages"]["nodes"]]
+            except Exception as e:
+                logging.error(
+                    "Unexpected error: Failed to get languages info: %s.",
+                    e,
+                )
+
             all_repos[repo_name] = {
                 "stargazerCount": repo["stargazerCount"],
                 "forkCount": repo["forkCount"],
                 "isPrivate": repo["isPrivate"],
                 "isFork": repo["isFork"],
                 "createdAt": repo["createdAt"],
-                "languages": [lang["name"] for lang in repo["languages"]["nodes"]],
+                "languages": languages,
                 "commits": commits,
             }
 
