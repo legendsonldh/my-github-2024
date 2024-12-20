@@ -201,19 +201,25 @@ def load():
     """
     data = request.json
 
-    access_token = data.get("access_token")
-    username = data.get("username")
-    timezone = data.get("timezone")
+    access_token = str(data.get("access_token"))
+    username = str(data.get("username"))
+    timezone = str(data.get("timezone"))
     year = int(data.get("year"))
 
+    if (not all([access_token, username, timezone, year])) or year < 2008 or year > 2030:
+        return jsonify({"redirect_url": url_for("index")})
+        
     session["access_token"] = access_token
     session["username"] = username
     session["timezone"] = timezone
     session["year"] = year
 
-    requested_user = RequestedUser(username=username)
-    db.session.add(requested_user)
-    db.session.commit()
+    try:
+        requested_user = RequestedUser(username=username)
+        db.session.add(requested_user)
+        db.session.commit()
+    except Exception as e:
+        logging.error("Error saving requested user: %s", e)
 
     if not all([username, access_token, year, timezone]):
         return jsonify({"redirect_url": url_for("index", year=year)})
@@ -224,7 +230,7 @@ def load():
                 context = get_context(username, access_token, year, timezone)
 
                 logging.info("Context of %s: %s", username, json.dumps(context))
-
+                
                 user_context = UserContext(username=username, context=json.dumps(context))
                 db.session.add(user_context)
                 db.session.commit()

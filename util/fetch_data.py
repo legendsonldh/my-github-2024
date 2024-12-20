@@ -153,29 +153,27 @@ def _get_repo(
             default_branch_ref = repo.get("defaultBranchRef")
             if not default_branch_ref:
                 continue
-            
-            target = default_branch_ref.get("target")
-            if not target:
-                raise ValueError("`target` not in repo['defaultBranchRef']")
-            
-            history = target.get("history")
+
+            history = default_branch_ref.get("target").get("history")
             if not history:
                 raise ValueError("`history` not in repo['defaultBranchRef']['target']")
-            
+
             nodes = history.get("nodes")
             if not nodes:
                 nodes = []
-            
+
             commits = nodes
-            
+
             page_info = history.get("pageInfo")
-            
-            has_next_page = page_info.get("hasNextPage")            
+
+            has_next_page = page_info.get("hasNextPage")
             if has_next_page:
                 end_cursor = page_info.get("endCursor")
                 if not end_cursor:
-                    raise ValueError("`endCursor` not in repo['defaultBranchRef']['target']['history']['pageInfo']")
-            
+                    raise ValueError(
+                        "`endCursor` not in repo['defaultBranchRef']['target']['history']['pageInfo']"
+                    )
+
                 commit_after = end_cursor
 
                 while True:
@@ -190,16 +188,18 @@ def _get_repo(
                             commit_user = commit_result.get("user")
                             if not commit_user:
                                 raise ValueError("`user` not in commit_result")
-                            
+
                             repository = commit_user.get("repository")
                             if not repository:
                                 raise ValueError("`repository` not in commit_user")
-                            
+
                             default_branch_ref = repository.get("defaultBranchRef")
                             if not default_branch_ref:
                                 raise ValueError("`defaultBranchRef` not in repository")
 
-                            if commit_result["user"]["repository"]["defaultBranchRef"]["target"]["history"]:
+                            if commit_result["user"]["repository"]["defaultBranchRef"][
+                                "target"
+                            ]["history"]:
                                 break
                         except Exception as e:
                             logging.error(
@@ -373,7 +373,9 @@ def get_github_info(username: str, token: str, year: int) -> dict:
     repo_info = None
     while not repo_info:
         try:
-            logging.info("Processing repo: username=%s, interval=%d", username, interval)
+            logging.info(
+                "Processing repo: username=%s, interval=%d", username, interval
+            )
             repo_info = _get_repo(username, user_id, token, year, interval)
             if repo_info:
                 break
