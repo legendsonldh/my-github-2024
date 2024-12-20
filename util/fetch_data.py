@@ -169,13 +169,8 @@ def _get_repo(
             commits = nodes
             
             page_info = history.get("pageInfo")
-            if not page_info:
-                raise ValueError("`pageInfo` not in repo['defaultBranchRef']['target']['history']")
             
-            has_next_page = page_info.get("hasNextPage")
-            if not has_next_page:
-                raise ValueError("`hasNextPage` not in repo['defaultBranchRef']['target']['history']['pageInfo']")
-            
+            has_next_page = page_info.get("hasNextPage")            
             if has_next_page:
                 end_cursor = page_info.get("endCursor")
                 if not end_cursor:
