@@ -140,7 +140,7 @@ def _get_repo(
 
         nodes = repositories.get("nodes")
         if not nodes:
-            raise ValueError("`nodes` not in result")
+            nodes = []
 
         if not nodes:
             break
