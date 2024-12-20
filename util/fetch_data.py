@@ -130,45 +130,58 @@ def _get_repo(
     while True:
         result = _graphql_query(query, variables, token)
 
-        if "user" not in result:
+        user = result.get("user")
+        if not user:
             raise ValueError("`user` not in result")
-        elif "repositories" not in result["user"]:
+
+        repositories = user.get("repositories")
+        if not repositories:
             raise ValueError("`repositories` not in result")
-        elif "nodes" not in result["user"]["repositories"]:
+
+        nodes = repositories.get("nodes")
+        if not nodes:
             raise ValueError("`nodes` not in result")
-        
-        if not result["user"]["repositories"]["nodes"]:
+
+        if not nodes:
             break
 
-        for repo in result["user"]["repositories"]["nodes"]:
-            if "name" not in repo:
+        for repo in nodes:
+            repo_name = repo.get("name")
+            if not repo_name:
                 raise ValueError("`name` not in repo")
 
-            repo_name = repo["name"]
-
-            if "defaultBranchRef" not in repo:
+            default_branch_ref = repo.get("defaultBranchRef")
+            if not default_branch_ref:
                 raise ValueError("`defaultBranchRef` not in repo")
-            elif "target" not in repo["defaultBranchRef"]:
+            
+            target = default_branch_ref.get("target")
+            if not target:
                 raise ValueError("`target` not in repo['defaultBranchRef']")
-            elif "history" not in repo["defaultBranchRef"]["target"]:
+            
+            history = target.get("history")
+            if not history:
                 raise ValueError("`history` not in repo['defaultBranchRef']['target']")
-            elif "nodes" not in repo["defaultBranchRef"]["target"]["history"]:
+            
+            nodes = history.get("nodes")
+            if not nodes:
                 raise ValueError("`nodes` not in repo['defaultBranchRef']['target']['history']")
-
-            commits = repo["defaultBranchRef"]["target"]["history"]["nodes"]
-
-            if "pageInfo" not in repo["defaultBranchRef"]["target"]["history"]:
+            
+            commits = nodes
+            
+            page_info = history.get("pageInfo")
+            if not page_info:
                 raise ValueError("`pageInfo` not in repo['defaultBranchRef']['target']['history']")
-            elif "hasNextPage" not in repo["defaultBranchRef"]["target"]["history"]["pageInfo"]:
+            
+            has_next_page = page_info.get("hasNextPage")
+            if not has_next_page:
                 raise ValueError("`hasNextPage` not in repo['defaultBranchRef']['target']['history']['pageInfo']")
-
-            if repo["defaultBranchRef"]["target"]["history"]["pageInfo"]["hasNextPage"]:
-                if "endCursor" not in repo["defaultBranchRef"]["target"]["history"]["pageInfo"]:
+            
+            if has_next_page:
+                end_cursor = page_info.get("endCursor")
+                if not end_cursor:
                     raise ValueError("`endCursor` not in repo['defaultBranchRef']['target']['history']['pageInfo']")
-
-                commit_after = repo["defaultBranchRef"]["target"]["history"][
-                    "pageInfo"
-                ]["endCursor"]
+            
+                commit_after = end_cursor
 
                 while True:
                     tryTimes = 0
@@ -201,7 +214,7 @@ def _get_repo(
 
             languages = []
             try:
-                if repo["languages"]["nodes"]:
+                if repo.get("languages").get("nodes"):
                     languages = [lang["name"] for lang in repo["languages"]["nodes"]]
             except Exception as e:
                 logging.error(
@@ -351,6 +364,8 @@ def get_github_info(username: str, token: str, year: int) -> dict:
         try:
             logging.info("Processing repo: username=%s, interval=%d", username, interval)
             repo_info = _get_repo(username, user_id, token, year, interval)
+            if repo_info:
+                break
         except Exception as e:
             logging.error(
                 "Unexpected error: Failed to get repo info: %s. Trying to decrease the interval.",
