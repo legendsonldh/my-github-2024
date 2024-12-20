@@ -130,18 +130,64 @@ def _get_repo(
     while True:
         result = _graphql_query(query, variables, token)
 
+        if "user" not in result:
+            raise ValueError("`user` not in result")
+        elif "repositories" not in result["user"]:
+            raise ValueError("`repositories` not in result")
+        elif "nodes" not in result["user"]["repositories"]:
+            raise ValueError("`nodes` not in result")
+
         for repo in result["user"]["repositories"]["nodes"]:
+            if "name" not in repo:
+                raise ValueError("`name` not in repo")
+
             repo_name = repo["name"]
 
+            if "defaultBranchRef" not in repo:
+                raise ValueError("`defaultBranchRef` not in repo")
+            elif "target" not in repo["defaultBranchRef"]:
+                raise ValueError("`target` not in repo['defaultBranchRef']")
+            elif "history" not in repo["defaultBranchRef"]["target"]:
+                raise ValueError("`history` not in repo['defaultBranchRef']['target']")
+            elif "nodes" not in repo["defaultBranchRef"]["target"]["history"]:
+                raise ValueError("`nodes` not in repo['defaultBranchRef']['target']['history']")
+
             commits = repo["defaultBranchRef"]["target"]["history"]["nodes"]
+
+            if "pageInfo" not in repo["defaultBranchRef"]["target"]["history"]:
+                raise ValueError("`pageInfo` not in repo['defaultBranchRef']['target']['history']")
+            elif "hasNextPage" not in repo["defaultBranchRef"]["target"]["history"]["pageInfo"]:
+                raise ValueError("`hasNextPage` not in repo['defaultBranchRef']['target']['history']['pageInfo']")
+
             if repo["defaultBranchRef"]["target"]["history"]["pageInfo"]["hasNextPage"]:
+                if "endCursor" not in repo["defaultBranchRef"]["target"]["history"]["pageInfo"]:
+                    raise ValueError("`endCursor` not in repo['defaultBranchRef']['target']['history']['pageInfo']")
+
                 commit_after = repo["defaultBranchRef"]["target"]["history"][
                     "pageInfo"
                 ]["endCursor"]
+
                 while True:
-                    commit_result = _get_commit(
-                        user_name, user_id, token, year, repo_name, commit_after
-                    )["user"]["repository"]["defaultBranchRef"]["target"]["history"]
+                    tryTimes = 0
+                    commit_result = None
+                    while tryTimes < 3:
+                        try:
+                            commit_result = _get_commit(
+                                user_name, user_id, token, year, repo_name, commit_after
+                            )
+                            if commit_result["user"]["repository"]["defaultBranchRef"]["target"]["history"]:
+                                break
+                        except Exception as e:
+                            logging.error(
+                                "Unexpected error: Failed to get commit info: %s.",
+                                e,
+                            )
+                            tryTimes += 1
+
+
+                    commit_result = commit_result["user"]["repository"][
+                        "defaultBranchRef"
+                    ]["target"]["history"]
 
                     commits.extend(commit_result["nodes"])
 
@@ -296,6 +342,14 @@ def get_github_info(username: str, token: str, year: int) -> dict:
             logging.error(
                 "Unexpected error: Failed to get repo info: %s. Trying to decrease the interval.",
                 e,
+            )
+            interval = interval // 2
+
+            if interval < 1:
+                raise ValueError("Failed to get repo info") from e
+        else:
+            logging.error(
+                "Unexpected error: Failed to get repo info. Trying to decrease the interval."
             )
             interval = interval // 2
 

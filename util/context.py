@@ -135,8 +135,13 @@ def get_context(username: str, token: str, year: int, time_zone: str) -> dict:
         k: language_in_new_repos.count(k) for k in set(language_in_new_repos)
     }
 
+    pattern = (
+        r"https://private-avatars\.githubusercontent\.com/u/(\d+)\?[^&]+&[^&]+&v=(\d+)"
+    )
+    replacement = r"https://avatars.githubusercontent.com/u/\1?v=\2"
+    
     # Avatar URL
-    avatar = data["basic"]["avatar_url"]
+    avatar = re.sub(pattern, replacement, data["basic"]["avatar_url"])
     # Username
     name = username
     if data["basic"]["name"]:
