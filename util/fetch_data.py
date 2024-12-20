@@ -152,7 +152,7 @@ def _get_repo(
 
             default_branch_ref = repo.get("defaultBranchRef")
             if not default_branch_ref:
-                raise ValueError("`defaultBranchRef` not in repo")
+                continue
             
             target = default_branch_ref.get("target")
             if not target:
