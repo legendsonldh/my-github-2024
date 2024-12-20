@@ -186,6 +186,19 @@ def _get_repo(
                             commit_result = _get_commit(
                                 user_name, user_id, token, year, repo_name, commit_after
                             )
+
+                            commit_user = commit_result.get("user")
+                            if not commit_user:
+                                raise ValueError("`user` not in commit_result")
+                            
+                            repository = commit_user.get("repository")
+                            if not repository:
+                                raise ValueError("`repository` not in commit_user")
+                            
+                            default_branch_ref = repository.get("defaultBranchRef")
+                            if not default_branch_ref:
+                                raise ValueError("`defaultBranchRef` not in repository")
+
                             if commit_result["user"]["repository"]["defaultBranchRef"]["target"]["history"]:
                                 break
                         except Exception as e:
@@ -195,6 +208,8 @@ def _get_repo(
                             )
                             tryTimes += 1
 
+                    if not commit_result:
+                        break
 
                     commit_result = commit_result["user"]["repository"][
                         "defaultBranchRef"
