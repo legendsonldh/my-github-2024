@@ -16,7 +16,7 @@ from log.logging_config import setup_logging
 setup_logging()
 
 
-@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+@retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=2, max=64))
 def _graphql_query(query: str, variables: dict, token: str) -> dict:
     url = "https://api.github.com/graphql"
     headers = {
@@ -191,7 +191,9 @@ def _get_repo(
 
                             repository = commit_user.get("repository")
                             if not repository:
-                                raise ValueError("`repository` not in commit_user")
+                                logging.error("`repository` not in commit_user")
+                                commit_result = None
+                                break
 
                             default_branch_ref = repository.get("defaultBranchRef")
                             if not default_branch_ref:

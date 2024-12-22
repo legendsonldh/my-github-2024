@@ -143,6 +143,9 @@ def callback():
     """
     Endpoint for the GitHub OAuth callback.
     """
+    if "code" not in request.args:
+        return redirect(url_for("index"))
+
     code = request.args.get("code")
 
     if not code:
