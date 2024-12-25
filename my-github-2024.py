@@ -132,45 +132,94 @@ def login():
     """
     if session.get("access_token"):
         return redirect(url_for("dashboard"))
-    github_authorize_url = "https://github.com/login/oauth/authorize"
+    gitlab_authorize_url = "http://localhost:9999/oauth/authorize"
+    redirect_uri = url_for('callback', _external=True)
     return redirect(
-        f"{github_authorize_url}?client_id={app.config['CLIENT_ID']}&scope=repo,read:org"
+        f"{gitlab_authorize_url}?client_id={app.config['CLIENT_ID']}&response_type=code&redirect_uri={redirect_uri}&scope=read_user"
     )
 
 
 @app.route("/callback", methods=["GET"])
 def callback():
     """
-    Endpoint for the GitHub OAuth callback.
+    Endpoint for the GitLab OAuth callback.
     """
+    logging.info("Callback received with args: %s", request.args)
+    
     if "code" not in request.args:
+        logging.error("No code found in request args")
         return redirect(url_for("index"))
 
     code = request.args.get("code")
+    logging.info("Received authorization code: %s", code)
 
     if not code:
+        logging.error("Code is None")
         return redirect(url_for("index"))
 
     try:
+        # 记录请求详情
+        request_data = {
+            "client_id": app.config["CLIENT_ID"],
+            "client_secret": app.config["CLIENT_SECRET"],  # 使用实际的 secret
+            "code": code,
+            "grant_type": "authorization_code",
+            "redirect_uri": url_for('callback', _external=True),
+        }
+        
+        # 添加更多的请求头
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "User-Agent": "Python/requests"
+        }
+        
+        logging.info("Sending token request to GitLab")
         token_response = requests.post(
-            "https://github.com/login/oauth/access_token",
-            headers={"Accept": "application/json"},
-            data={
-                "client_id": app.config["CLIENT_ID"],
-                "client_secret": app.config["CLIENT_SECRET"],
-                "code": code,
-            },
+            "http://127.0.0.1:9999/oauth/token",
+            headers=headers,
+            json=request_data,  # 使用 json 而不是 data
             timeout=10,
         )
+        
+        logging.info("Token response status code: %s", token_response.status_code)
+        logging.info("Token response headers: %s", dict(token_response.headers))
+        
+        if token_response.status_code != 200:
+            logging.error("Token request failed with status code: %s", token_response.status_code)
+            logging.error("Response content: %s", token_response.text)
+            # 添加更详细的错误信息
+            if token_response.status_code == 503:
+                logging.error("GitLab service is unavailable")
+            elif token_response.status_code == 401:
+                logging.error("Invalid client credentials")
+            elif token_response.status_code == 400:
+                logging.error("Invalid request parameters")
+            return redirect(url_for("index"))
+            
         token_json = token_response.json()
+        logging.info("Token response parsed successfully: %s", {k: '***' if k == 'access_token' else v for k, v in token_json.items()})
+        
         access_token = token_json.get("access_token")
+        if not access_token:
+            logging.error("Access token not found in response")
+            return redirect(url_for("index"))
+            
+        logging.info("Access token received successfully")
+        
     except requests.exceptions.RequestException as e:
-        logging.error("Error getting access token: %s", e)
+        logging.error("Request exception during token request: %s", str(e))
+        return redirect(url_for("index"))
+    except json.JSONDecodeError as e:
+        logging.error("JSON decode error: %s", str(e))
+        logging.error("Raw response content: %s", token_response.text)
+        return redirect(url_for("index"))
+    except Exception as e:
+        logging.error("Unexpected error during token request: %s", str(e))
         return redirect(url_for("index"))
 
-    if not access_token:
-        return redirect(url_for("index"))
     session["access_token"] = access_token
+    logging.info("Access token stored in session successfully")
     return redirect(url_for("dashboard"))
 
 
@@ -180,14 +229,15 @@ def dashboard():
     Endpoint for the dashboard page.
     """
     access_token = session.get("access_token")
-    headers = {"Authorization": f"bearer {access_token}"}
+    headers = {"Authorization": f"Bearer {access_token}"}
     logging.info("access_token: %s", access_token)
     user_response = requests.get(
-        "https://api.github.com/user", headers=headers, timeout=10
+        "http://127.0.0.1:9999/api/v4/user", headers=headers, timeout=10
     )
     user_data = user_response.json()
+    logging.info("user_data: %s", user_data)
 
-    username = user_data.get("login")
+    username = user_data.get("username")
     session["username"] = username
 
     if UserContext.query.filter_by(username=username).first():
@@ -283,4 +333,4 @@ def static_files(filename):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="127.0.0.1", port=5000)
