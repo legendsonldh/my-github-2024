@@ -5,29 +5,24 @@
 
   [English](README.md) | 简体中文
 
-  [![Pylint](https://github.com/WCY-dt/my-github-2024/actions/workflows/pylint.yml/badge.svg)](https://github.com/WCY-dt/my-github-2024/actions/workflows/pylint.yml) [![Deploy state](https://github.com/WCY-dt/my-github-2024/actions/workflows/deploy.yml/badge.svg)](https://github.com/WCY-dt/my-github-2024/actions/workflows/deploy.yml) [![Server Status](https://img.shields.io/badge/dynamic/json?logo=linux&color=brightgreen&label=Server%20status&query=%24.status&cacheSeconds=600&url=https%3A%2F%2F2024.ch3nyang.top%2Fstatus)](https://2024.ch3nyang.top)
+  [![Deploy state](https://github.com/WCY-dt/my-github-2024/actions/workflows/deploy.yml/badge.svg)](https://github.com/WCY-dt/my-github-2024/actions/workflows/deploy.yml) [![Server Status](https://img.shields.io/badge/dynamic/json?logo=linux&color=brightgreen&label=Server%20status&query=%24.status&cacheSeconds=600&url=https%3A%2F%2F2024.ch3nyang.top%2Fstatus)](https://2024.ch3nyang.top)
 
   [![GitHub issues](https://img.shields.io/github/issues/WCY-dt/my-github-2024)](https://github.com/WCY-dt/my-github-2024/issues) [![GitHub pull requests](https://img.shields.io/github/issues-pr/WCY-dt/my-github-2024)](https://github.com/WCY-dt/my-github-2024/pulls) [![GitHub license](https://img.shields.io/github/license/WCY-dt/my-github-2024)](https://github.com/WCY-dt/my-github-2024/blob/main/LICENSE)
 
   <strong style="font-size: 24px;">👉 立即体验: <a href="https://2024.ch3nyang.top">https://2024.ch3nyang.top</a></strong>
 </div>
 
-> [!WARNING]
->
-> This project is running on a VPS with poor performance. If the server is down, please refer to the [Run locally](README.md#run-locally) section.
->
-> 本项目运行在一台性能较弱的 VPS 上。如遇服务器宕机，请参考[本地运行](#本地运行)部分。
-
-
-> [!TIP]
->
-> If it keeps in waiting page, reasons can be that you have too many commits. You can close the webpage and come back later. The server will continue to process your data.
->
-> 如果一直在转圈等待，可能是因为您的 commit 数量过多。您可以放心关闭网页，过会儿再来看，服务器会继续处理您的数据。
-
 ## 示例
 
 ![example](example.png)
+
+## 使用方法
+
+1. 访问 [https://2024.ch3nyang.top](https://2024.ch3nyang.top)。
+
+2. 点击 `Sign in with GitHub` 按钮，授权登录。
+
+3. 选择你所在的时区，然后点击 `Generate` 按钮，稍等几秒，即可查看 2024 年你在 GitHub 上的活动。
 
 ## 本地运行
 
@@ -71,6 +66,4 @@
 
 ## 统计
 
-> 感谢[阮一峰老师](https://github.com/ruanyf)的推荐！
-
-[![Stargazers over time](https://starchart.cc/WCY-dt/my-github-2024.svg?background=%23FFFFFF&axis=%23333333&line=%232da44e)](https://starchart.cc/WCY-dt/my-github-2024)
+[![Star History Chart](https://api.star-history.com/svg?repos=WCY-dt/my-github-2024&type=Date)](https://star-history.com/#WCY-dt/my-github-2024&Date)
