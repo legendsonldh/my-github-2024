@@ -33,6 +33,9 @@ def app_preparation():
 
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///my-github-2024.db"
 
+    if logging.getLogger("requests"):
+        logging.getLogger("requests").setLevel(logging.ERROR)
+
 
 app_preparation()
 
