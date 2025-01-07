@@ -8,6 +8,8 @@ document.getElementById('inputForm').addEventListener('submit', function (event)
   // Hide the form
   document.getElementById('inputForm').style.display = 'none';
 
+  console.log("fetch data from gitlab")
+
   fetch("/load", {
     method: 'POST',
     headers: {

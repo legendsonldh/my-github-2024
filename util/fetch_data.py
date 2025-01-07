@@ -5,405 +5,271 @@ Functions:
     get_github_info(username: str, token: str, year: int) -> dict:
         Get the GitHub information for the given year.
 """
-
+import calendar
 import logging
+from datetime import datetime
+from itertools import groupby
 
+import gitlab
+import pytz
 import requests
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from log.logging_config import setup_logging
+from collections import defaultdict, Counter
+import util.context
+
 
 setup_logging()
 
 
-@retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=2, max=64))
-def _graphql_query(query: str, variables: dict, token: str) -> dict:
-    url = "https://api.github.com/graphql"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
-    }
-    response = requests.post(
-        url, json={"query": query, "variables": variables}, headers=headers, timeout=10
+# Initialize the GitLab API client
+def initialize_gitlab_client(baseurl:str,token: str):
+    gl = gitlab.Gitlab(baseurl, oauth_token=token)
+    return gl
+
+
+# Fetch user information
+def _get_basic(user_name: str, gl) -> dict:
+    user = gl.users.list(username=user_name)[0]
+    logging.info("Fetching GitLab basic data. %s", user)
+
+    # Days since account creation
+    existdays = (
+        (
+            (
+                datetime.now(pytz.UTC)
+                - datetime.strptime(user.created_at, "%Y-%m-%dT%H:%M:%S.%f%z")
+            ).days
+            + 99
+        )
+        // 100
+        * 100
     )
-    response.raise_for_status()
-    return response.json()["data"]
-
-
-def _get_basic(user_name: str, token: str) -> dict:
-    query = """
-    query($username: String!) {
-        user(login: $username) {
-            id
-            name
-            avatarUrl
-            followers {
-                totalCount
-            }
-            following {
-                totalCount
-            }
-            createdAt
-        }
-    }
-    """
-
-    variables = {
-        "username": user_name,
-    }
-
-    result = _graphql_query(query, variables, token)["user"]
-
     return {
-        "id": result["id"],
-        "name": result["name"],
-        "avatar_url": result["avatarUrl"],
-        "follower": result["followers"]["totalCount"],
-        "following": result["following"]["totalCount"],
-        "created_time": result["createdAt"],
+        "id": user.id,
+        "name": user.name,
+        "avatar_url": user.avatar_url,
+        "followers": len(user.followers_users.list()),
+        "followings": len(user.following_users.list()),
+        "created_time": user.created_at,
+        "email": user.email,
+        "existdays": existdays
+
     }
 
-
-def _get_repo(
-    user_name: str, user_id: str, token: str, year: int, interval: int
-) -> dict:
-
-    query = """
-    query($username: String!, $id: ID!, $since: GitTimestamp!, $until: GitTimestamp!, $after: String) {
-        user(login: $username) {
-            repositories(first: %d, after: $after) {
-                nodes {
-                    name
-                    stargazerCount
-                    forkCount
-                    isPrivate
-                    isFork
-                    createdAt
-                    languages(first: 100) {
-                        nodes {
-                            name
-                        }
-                    }
-                    defaultBranchRef {
-                        target {
-                            ... on Commit {
-                                history(first: 100, since: $since, until: $until, author: {id: $id}) {
-                                    nodes {
-                                        message
-                                        committedDate
-                                    }
-                                    pageInfo{
-                                        hasNextPage
-                                        startCursor
-                                        endCursor
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                pageInfo{
-                    hasNextPage
-                    startCursor
-                    endCursor
-                }
-            }
-        }
-    }
-    """ % (
-        interval
-    )
-
-    start_time = f"{year}-01-01T00:00:00Z"
-    end_time = f"{year}-12-31T23:59:59Z"
-
-    variables = {
-        "username": user_name,
-        "id": user_id,
-        "since": start_time,
-        "until": end_time,
-        "after": None,
-    }
-
+# Fetch repositories
+def _get_repo(user_name: str,user_email:str, user_id: str, gl, year: int):
+    projects = gl.projects.list(get_all=True,keep_base_url=True)
     all_repos = {}
+    contribution_calendar = []
+    commit_count = 0
 
-    while True:
-        result = _graphql_query(query, variables, token)
+    mr_count = 0
+    issues_count = 0
+    issues = []
 
-        user = result.get("user")
-        if not user:
-            raise ValueError("`user` not in result")
+    commit_type_num = defaultdict(int)
+    commit_time_num = [0] * 24
+    language_in_repos = []
+    for project in projects:
+        members = project.members.list(get_all=True)
 
-        repositories = user.get("repositories")
-        if not repositories:
-            raise ValueError("`repositories` not in result")
+        for member in members:
+            if member.id == user_id:
+                repo_name = project.name
+                created_at = project.created_at
+                # 如果仓库是在给定年份创建的，则获取该年份的提交记录
+                commits = []
+                user_commits = 0  # 统计该用户作为提交者的提交数量
+                reviewer_commits = 0  # 统计该用户作为审核者的提交数量
+                # 获取仓库的语言统计
+                repo_languages = project.languages()
+                language_in_repos.append(repo_languages)
+                # 获取该仓库的提交记录
+                commit_list = project.commits.list(ref_name = "develop",since=f'{year}-01-01T00:00:00Z', until=f'{year}-12-31T23:59:59Z',
+                                                get_all=True,keep_base_url=True)
 
-        nodes = repositories.get("nodes")
-        if not nodes:
-            nodes = []
+                user_identifiers = {user_name, user_email}
+                for commit in commit_list:
 
-        if not nodes:
-            break
-
-        for repo in nodes:
-            repo_name = repo.get("name")
-            if not repo_name:
-                raise ValueError("`name` not in repo")
-
-            default_branch_ref = repo.get("defaultBranchRef")
-            if not default_branch_ref:
-                continue
-
-            history = default_branch_ref.get("target").get("history")
-            if not history:
-                raise ValueError("`history` not in repo['defaultBranchRef']['target']")
-
-            nodes = history.get("nodes")
-            if not nodes:
-                nodes = []
-
-            commits = nodes
-
-            page_info = history.get("pageInfo")
-
-            has_next_page = page_info.get("hasNextPage")
-            if has_next_page:
-                end_cursor = page_info.get("endCursor")
-                if not end_cursor:
-                    raise ValueError(
-                        "`endCursor` not in repo['defaultBranchRef']['target']['history']['pageInfo']"
-                    )
-
-                commit_after = end_cursor
-
-                while True:
-                    tryTimes = 0
-                    commit_result = None
-                    while tryTimes < 3:
-                        try:
-                            commit_result = _get_commit(
-                                user_name, user_id, token, year, repo_name, commit_after
-                            )
-
-                            commit_user = commit_result.get("user")
-                            if not commit_user:
-                                raise ValueError("`user` not in commit_result")
-
-                            repository = commit_user.get("repository")
-                            if not repository:
-                                logging.error("`repository` not in commit_user")
-                                commit_result = None
-                                break
-
-                            default_branch_ref = repository.get("defaultBranchRef")
-                            if not default_branch_ref:
-                                raise ValueError("`defaultBranchRef` not in repository")
-
-                            if commit_result["user"]["repository"]["defaultBranchRef"][
-                                "target"
-                            ]["history"]:
-                                break
-                        except Exception as e:
-                            logging.error(
-                                "Unexpected error: Failed to get commit info: %s.",
-                                e,
-                            )
-                            tryTimes += 1
-
-                    if not commit_result:
-                        break
-
-                    commit_result = commit_result["user"]["repository"][
-                        "defaultBranchRef"
-                    ]["target"]["history"]
-
-                    if commit_result["nodes"]:
-                        commits.extend(commit_result["nodes"])
-
-                    if not commit_result["pageInfo"]["hasNextPage"]:
-                        break
-
-                    commit_after = commit_result["pageInfo"]["endCursor"]
-
-            languages = []
-            try:
-                if repo.get("languages").get("nodes"):
-                    languages = [lang["name"] for lang in repo["languages"]["nodes"]]
-            except Exception as e:
-                logging.error(
-                    "Unexpected error: Failed to get languages info: %s.",
-                    e,
-                )
-
-            all_repos[repo_name] = {
-                "stargazerCount": repo["stargazerCount"],
-                "forkCount": repo["forkCount"],
-                "isPrivate": repo["isPrivate"],
-                "isFork": repo["isFork"],
-                "createdAt": repo["createdAt"],
-                "languages": languages,
-                "commits": commits,
-            }
-
-        if not result["user"]["repositories"]["pageInfo"]["hasNextPage"]:
-            break
-
-        variables["after"] = result["user"]["repositories"]["pageInfo"]["endCursor"]
-
-    return all_repos
-
-
-def _get_commit(
-    user_name: str, user_id: str, token: str, year: int, repo_name: str, after: str
-) -> dict:
-    query = """
-    query($username: String!, $id: ID!, $since: GitTimestamp!, $until: GitTimestamp!, $repo_name: String!, $after: String) {
-        user(login: $username) {
-            repository(name: $repo_name) {
-                defaultBranchRef {
-                    target {
-                        ... on Commit {
-                            history(first: 100, since: $since, until: $until, author: {id: $id}, after: $after) {
-                                nodes {
-                                    message
-                                    committedDate
-                                }
-                                pageInfo{
-                                    hasNextPage
-                                    startCursor
-                                    endCursor
-                                }
-                            }
-                        }
+                    commit_data = {
+                        "message": commit.message,
+                        "committedDate": commit.created_at,
                     }
+
+                    # 判断该用户是否是提交者
+                    if commit.author_name in user_identifiers or commit.author_email in user_identifiers:
+                        commit_type = util.context._get_commit_type(commit_data["message"])
+                        commit_type_num[commit_type] += 1
+
+                        # 处理 commit_time
+                        commit_time = util.context._parse_time(commit_data["committedDate"], pytz.timezone('Asia/Shanghai')).hour
+                        commit_time_num[commit_time] += 1
+                        contribution_calendar.append(commit.created_at[:10])
+
+                        commits.append(commit_data)
+                        user_commits += 1  # 作为提交者的提交数量
+
+
+                    # 判断该用户是否是审核者（committer_name）
+                    if commit.committer_name in user_identifiers or commit.committer_email in user_identifiers:
+                        reviewer_commits += 1  # 作为审核者的提交数量
+
+                commit_count += user_commits
+
+                try:
+                    # merge
+                    created_at_merge_requests = project.mergerequests.list(scope="created_by_me", created_after=f'{year}-01-01',
+                                                                     created_before=f'{year}-12-31',
+                                                                     get_all=True)
+                except gitlab.exceptions.GitlabError:
+                    created_at_merge_requests = []
+
+                try:
+                    assigned_to_merge_requests = project.mergerequests.list(scope="assigned_to_me ", created_after=f'{year}-01-01',
+                                                                     created_before=f'{year}-12-31',
+                                                                     get_all=True)
+                except gitlab.exceptions.GitlabError:
+                    assigned_to_merge_requests = []
+
+
+                mr_count += len(created_at_merge_requests)
+                mr_count += len(assigned_to_merge_requests)
+
+                try:
+                    # merge
+                    issues = project.issues.list(assignee_id=user_id, created_after=f'{year}-01-01',
+                                                                     created_before=f'{year}-12-31',
+                                                                     get_all=True)
+                except gitlab.exceptions.GitlabError:
+                    issues = []
+
+                issues_count += len(issues)
+
+
+                # 保存仓库的数据，包括用户作为提交者和审核者的统计
+                all_repos[repo_name] = {
+                    "stargazerCount": project.star_count,
+                    "forkCount": project.forks_count,
+                    "isPrivate": project.visibility == 'private',
+                    "createdAt": created_at,
+                    "languages": repo_languages,
+                    "commits": commits,
+                    "userCommits": user_commits,  # 该用户作为提交者的提交数量
+                    "reviewerCommits": reviewer_commits,  # 该用户作为审核者的提交数量
                 }
-            }
+                # 后续相关代码逻辑
+                break
+
+    languages = [lang for item in language_in_repos if item for lang in item.keys()]
+    language_counts = Counter(languages)
+
+    # Number of activities in each day
+    commits_per_day = contribution_calendar
+    # Number of days with activities（活动天数，即不重复的日期数量）
+    unique_days = len(set(commits_per_day))
+
+    # Longest active streak（最长连续出现相同日期的天数，这里理解为同一天多次出现视为连续活动）
+    date_groups = [(date, len(list(group))) for date, group in groupby(commits_per_day)]
+    longest_commit_streak = max([count for _, count in date_groups]) if date_groups else 0
+
+    # Longest inactive streak（最长连续不出现的天数间隔，这里通过比较相邻日期的差值来统计）
+    sorted_dates = sorted(commits_per_day)
+    date_gaps = []
+    for i in range(len(sorted_dates) - 1):
+        current_date = sorted_dates[i]
+        next_date = sorted_dates[i + 1]
+        from datetime import datetime
+        current_date_obj = datetime.strptime(current_date, '%Y-%m-%d')
+        next_date_obj = datetime.strptime(next_date, '%Y-%m-%d')
+        gap = (next_date_obj - current_date_obj).days
+        date_gaps.append(gap)
+    longest_commit_break = max(date_gaps) if date_gaps else 0
+
+    # Maximum number of occurrences of a date in a day（某一天出现的最大次数，也就是重复次数最多的日期的重复次数）
+    date_counts = {}
+    for date in commits_per_day:
+        date_counts[date] = date_counts.get(date, 0) + 1
+    max_date_occurrences = max(date_counts.values()) if date_counts else 0
+
+    # 用于统计每个月活动数量的字典，键为月份（格式 '2023-01' 这样），值为活动数量
+
+    days_in_year = 366 if calendar.isleap(year) else 365
+
+    commits_per_year = [0] * days_in_year
+    commits_per_weekday = [0] * 7
+    commits_per_month = [0] * 12
+
+    for date_str in commits_per_day:
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+        month = date_obj.month - 1
+        day_of_year = date_obj.timetuple().tm_yday - 1
+        commits_per_month[month] += 1
+        commits_per_year[day_of_year] += 1
+        weekday = date_obj.weekday()
+        commits_per_weekday[weekday] += 1
+
+    month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+    most_active_month = month_names[commits_per_month.index(max(commits_per_month))]
+
+    # Most active weekday（找出最活跃的工作日）
+    weekday_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    most_active_weekday = weekday_names[commits_per_weekday.index(max(commits_per_weekday))]
+
+    # Most active hour（找出最活跃的小时）
+    hour_formats = [f"{i}:00" for i in range(24)]
+    most_active_hour = hour_formats[commit_time_num.index(max(commit_time_num))]
+
+
+    contribution_info = {
+            "mr_num": mr_count,
+            "commit_num": commit_count,
+            "issue_num":issues_count,
+            "commit_type_num":commit_type_num,
+            "commit_time_num": commit_time_num,
+            "language_counts":language_counts,
+            "commits_days_num":unique_days,
+            "commits_per_day":commits_per_year,
+            "longest_commit_streak":longest_commit_streak,
+            "longest_commit_break":longest_commit_break,
+            "max_date_occurrences":max_date_occurrences,
+            "commits_per_month":commits_per_month,
+            "most_active_month": most_active_month,
+            "commits_per_weekday": commits_per_weekday,
+            "most_active_weekday": most_active_weekday,
+            "commits_per_hour": commit_time_num,
+            "most_active_hour": most_active_hour,
         }
-    }
-    """
 
-    start_time = f"{year}-01-01T00:00:00Z"
-    end_time = f"{year}-12-31T23:59:59Z"
-
-    variables = {
-        "username": user_name,
-        "id": user_id,
-        "since": start_time,
-        "until": end_time,
-        "repo_name": repo_name,
-        "after": after,
-    }
-
-    return _graphql_query(query, variables, token)
+    return all_repos,contribution_info
 
 
-def _get_contribution(user_name: str, token: str, year: int) -> dict:
-    query = """
-    query($username: String!, $from: DateTime!, $to: DateTime!) {
-        user(login: $username) {
-            contributionsCollection(from: $from, to: $to) {
-                totalPullRequestContributions
-                totalIssueContributions
-                totalCommitContributions
-                contributionCalendar {
-                    totalContributions
-                    weeks {
-                        contributionDays {
-                            contributionCount
-                        }
-                    }
-                }
-            }
-        }
-    }
-    """
-
-    start_time = f"{year}-01-01T00:00:00Z"
-    end_time = f"{year}-12-31T23:59:59Z"
-
-    variables = {
-        "username": user_name,
-        "from": start_time,
-        "to": end_time,
-    }
-
-    result = _graphql_query(query, variables, token)["user"]["contributionsCollection"]
-
-    pr_num = result["totalPullRequestContributions"]
-    issue_num = result["totalIssueContributions"]
-    commit_num = result["totalCommitContributions"]
-
-    result_calendar = result["contributionCalendar"]
-
-    contribution_num = result_calendar["totalContributions"]
-    contribution = [
-        day["contributionCount"]
-        for week in result_calendar["weeks"]
-        for day in week["contributionDays"]
-    ]
-
-    return {
-        "pr_num": pr_num,
-        "issue_num": issue_num,
-        "commit_num": commit_num,
-        "contribution_num": contribution_num,
-        "contribution": contribution,
-    }
-
-
-def get_github_info(username: str, token: str, year: int) -> dict:
-    """
-    Get the GitHub information for the given year.
-
-    Args:
-        username (str): The GitHub username.
-        token (str): The GitHub access token.
-        year (int): The year to get the information.
-
-    Returns:
-        dict: The GitHub information.
-    """
+# Main function to gather GitLab data
+def get_gitlab_info(baseurl:str,username: str, token: str, year: int) -> dict:
+    gl = initialize_gitlab_client(baseurl,token)
 
     logging.info("Processing basic info: username=%s", username)
-    basic_info = _get_basic(username, token)
+
+    basic_info = _get_basic(username, gl)
+    logging.info("Basic info: %s", basic_info)
+
     if not basic_info["id"]:
         raise ValueError("Failed to get user id")
 
     user_id = basic_info["id"]
+    user_email = basic_info["email"]
 
-    interval = 10
-    repo_info = None
-    while not repo_info:
-        try:
-            logging.info(
-                "Processing repo: username=%s, interval=%d", username, interval
-            )
-            repo_info = _get_repo(username, user_id, token, year, interval)
-            if repo_info:
-                break
-        except Exception as e:
-            logging.error(
-                "Unexpected error: Failed to get repo info: %s. Trying to decrease the interval.",
-                e,
-            )
-            interval = interval // 2
+    logging.info("Processing repos for user_id=%s", user_id)
+    logging.info("Processing contributions for user=%s", username)
 
-            if interval < 1:
-                raise ValueError("Failed to get repo info") from e
-        else:
-            logging.error(
-                "Unexpected error: Failed to get repo info. Trying to decrease the interval."
-            )
-            interval = interval // 2
-
-            if interval < 1:
-                raise ValueError("Failed to get repo info") from e
-
-    logging.info("Processing contribution: username=%s", username)
-    contribution_info = _get_contribution(username, token, year)
+    repo_info,contribution_info = _get_repo(username,user_email,user_id, gl, year)
 
     return {
         "basic": basic_info,
         "repo": repo_info,
         "contribution": contribution_info,
+
     }
+

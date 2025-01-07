@@ -16,10 +16,13 @@ from flask_sqlalchemy import SQLAlchemy
 from log.logging_config import setup_logging
 from util.context import get_context
 
+
+baseurl = "http://127.0.0.1:9999"
+
 setup_logging()
 
 app = Flask(__name__)
-
+app.debug = True
 
 def app_preparation():
     """
@@ -132,10 +135,10 @@ def login():
     """
     if session.get("access_token"):
         return redirect(url_for("dashboard"))
-    gitlab_authorize_url = "http://localhost:9999/oauth/authorize"
+    gitlab_authorize_url = baseurl + "/oauth/authorize"
     redirect_uri = url_for('callback', _external=True)
     return redirect(
-        f"{gitlab_authorize_url}?client_id={app.config['CLIENT_ID']}&response_type=code&redirect_uri={redirect_uri}&scope=read_user"
+        f"{gitlab_authorize_url}?client_id={app.config['CLIENT_ID']}&response_type=code&redirect_uri={redirect_uri}&scope=api"
     )
 
 
@@ -229,8 +232,9 @@ def dashboard():
     Endpoint for the dashboard page.
     """
     access_token = session.get("access_token")
+
     headers = {"Authorization": f"Bearer {access_token}"}
-    logging.info("access_token: %s", access_token)
+
     user_response = requests.get(
         "http://127.0.0.1:9999/api/v4/user", headers=headers, timeout=10
     )
@@ -253,7 +257,6 @@ def load():
     Endpoint to load user data.
     """
     data = request.json
-
     access_token = str(data.get("access_token"))
     username = str(data.get("username"))
     timezone = str(data.get("timezone"))
@@ -278,9 +281,10 @@ def load():
         return jsonify({"redirect_url": url_for("index", year=year)})
 
     def fetch_data():
+        logging.info("Fetching data from GitLab")
         with app.app_context():
             try:
-                context = get_context(username, access_token, year, timezone)
+                context = get_context(baseurl,username, access_token, year, timezone)
 
                 logging.info("Context of %s: %s", username, json.dumps(context))
                 
@@ -289,6 +293,7 @@ def load():
                 db.session.commit()
             except Exception as e:
                 logging.error("Error fetching data: %s", e)
+
 
     fetch_thread = threading.Thread(target=fetch_data)
     fetch_thread.start()
@@ -314,15 +319,11 @@ def display():
     """
     username = session.get("username")
     user_context = UserContext.query.filter_by(username=username).first()
-
-    logging.info("Display user context: %s", username)
-
     if user_context:
         return render_template(
             "template.html", context=json.loads(user_context.context)
         )
     return redirect(url_for("wait"))
-
 
 @app.route("/static/<path:filename>", methods=["GET"])
 def static_files(filename):
@@ -333,4 +334,5 @@ def static_files(filename):
 
 
 if __name__ == "__main__":
+
     app.run(host="127.0.0.1", port=5000)
